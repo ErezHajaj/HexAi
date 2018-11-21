@@ -23,11 +23,11 @@ inline void hash_combine(std::size_t & seed, const T & v)
 
 class Position {
   public:
-    Position(int s):red_tiles((s*s), false), blue_tiles((s*s), false), size(s), num_empty(s*s) {
+    Position(short int s):red_tiles((s*s), false), blue_tiles((s*s), false), size(s), num_empty(s*s) {
     }
 
 
-    void do_move(int pos, bool red) {
+    void do_move(short int pos, bool red) {
       if (red) {
         red_tiles[pos] = true;
       } else {
@@ -37,7 +37,7 @@ class Position {
       --num_empty;
     }
 
-    void undo_move(int pos, bool red) {
+    void undo_move(short int pos, bool red) {
       //if (red) {
         red_tiles[pos] = false;
       //} else {
@@ -48,8 +48,8 @@ class Position {
     }
 
     void get_moves(vector<Eval_Move>& candidate_moves) {
-      int counter = 0;
-      for (int i = 0; i < size*size; ++i) {
+      short int counter = 0;
+      for (short int i = 0; i < size*size; ++i) {
         //if (is_red) {
           if (!red_tiles[i] && !blue_tiles[i]) {
             candidate_moves[counter] = Eval_Move(i);
@@ -72,18 +72,12 @@ class Position {
       if (num_empty != other.num_empty || size != other.size) {
         return false;
       }
-      // for(int i = 0; i < size*size; ++i) {
-      //   if (red_tiles[i] != other.red_tiles[i] || blue_tiles[i] != other.blue_tiles[i]) {
-      //     return false;
-      //   }
-      // }
-      // return true;
       return (red_tiles == other.red_tiles && blue_tiles == other.blue_tiles);
     }
 
 
-    int num_empty;
-    int size;
+    short int num_empty;
+    short int size;
     vector<bool> red_tiles;
     vector<bool> blue_tiles;
     //bool is_red;

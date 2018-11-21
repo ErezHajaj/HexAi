@@ -10,9 +10,9 @@ using namespace std;
 
 
 struct Eval_Move {
-  Eval_Move(int p, int eval): pos(p), evaluation(eval){
+  Eval_Move(short int p, short int eval): pos(p), evaluation(eval){
   }
-  Eval_Move(int p): pos(p){
+  Eval_Move(short int p): pos(p){
   }
   Eval_Move(){
   }
@@ -30,6 +30,6 @@ struct Eval_Move {
    return (evaluation == m.evaluation);
   }
 
-  int pos;
-  int evaluation;
+  short int pos; //should be named move
+  short int evaluation;
 };
