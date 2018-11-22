@@ -42,7 +42,7 @@ bool in_last_2_col(int i, const Position&p) {
 
 
 bool in_first_row(int i, const Position&p) {
-  return (i%p.size == 0);
+  return !(i%p.size);
 }
 
 bool in_first_2_row(int i, const Position&p) {
@@ -51,12 +51,17 @@ bool in_first_2_row(int i, const Position&p) {
 }
 
 bool in_last_row(int i, const Position&p) {
-  return ((i+1)%p.size);
+  return !((i+1)%p.size);
 }
 
 bool in_last_2_row(int i, const Position&p) {
   short int a = ((i+2)%p.size);
   return (a <= 1);
+}
+
+
+short int red_to_blue_transpose(short int red_coord, int board_size) {
+
 }
 
 
@@ -68,9 +73,12 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
 
   }
   //if (DEBUG) cout << "eval shortest path2" << endl;
-  short int points = 0;
+  short int red_shortest_path = MAX;
+  short int blue_shortest_path = MAX;
   unordered_set<short int> reached;
   deque < pair<short int, short int> > to_check;
+
+
   for (short int i = 0; i < p.size; ++i) {
     if (p.red_tiles[i]) {
       reached.insert(i);
@@ -83,11 +91,11 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
   //if (DEBUG) cout << "eval shortest path3 " << points << endl;
   while(!to_check.empty()) {
     pair<short int, short int> c = to_check.front();
-    if (DEBUG) cout << c.first << " " << c.second << endl;
+    //if (DEBUG) cout << c.first << " " << c.second << endl;
     to_check.pop_front();
-    if (DEBUG) cout << "eval shortest path31 " << c.second << endl;
+    //if (DEBUG) cout << "eval shortest path31 " << c.second << endl;
     if (in_last_col(c.first, p)) {
-      points = -c.second;
+      red_shortest_path = c.second;
       break;
     }
     //if (DEBUG) cout << "eval shortest path32 " << c.second << endl;
@@ -105,7 +113,7 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
     } else if (in_last_row(c.first, p)) {
       dirs &= bitset<6>(0b000110);
     } else if (in_last_2_row(c.first, p)) {
-      dirs &= bitset<6>(0b010111);
+      dirs &= bitset<6>(0b001111);
     }
     //if (DEBUG) cout << "eval shortest path34 " << c.second << endl;
 
@@ -184,12 +192,129 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
   }
 ///BLUE
 
+reached.clear();
+to_check.clear();
+short int coord = 0;
+for (short int i = 0; i < p.size; ++i) {
+  if (p.blue_tiles[coord]) {
+    reached.insert(coord);
+    to_check.push_front( make_pair(coord, 0) );
+  } else if (!p.red_tiles[coord]) {
+    reached.insert(coord);
+    to_check.push_back( make_pair(coord, 1) );
+  }
+  coord += p.size;
+}
+//if (DEBUG) cout << "eval shortest path3 " << points << endl;
+while(!to_check.empty()) {
+  pair<short int, short int> c = to_check.front();
+  //if (DEBUG) cout << c.first << " " << c.second << endl;
+  to_check.pop_front();
+  //if (DEBUG) cout << "eval shortest path31 " << c.second << endl;
+  if (in_last_row(c.first, p)) {
+    blue_shortest_path = c.second;
+    //cout << c.first << " " << points << endl;
+    break;
+  }
+  //if (DEBUG) cout << "eval shortest path32 " << c.second << endl;
+  bitset<6> dirs(0b111111);
+  if (in_first_row(c.first, p)) {
+    dirs &= bitset<6>(0b011000);
+  } else if (in_first_2_row(c.first, p)) {
+    dirs &= bitset<6>(0b111100);
+  }
+  //if (DEBUG) cout << "eval shortest path33 " << c.second << endl;
+  if(in_first_col(c.first, p)) {
+    dirs &= bitset<6>(0b001100);
+  } else if (in_first_2_col(c.first, p)) {
+    dirs &= bitset<6>(0b011110);
+  } else if (in_last_col(c.first, p)) {
+    dirs &= bitset<6>(0b011000);
+  } else if (in_last_2_col(c.first, p)) {
+    dirs &= bitset<6>(0b111100);
+  }
+  //if (DEBUG) cout << "eval shortest path34 " << c.second << endl;
+
+  if (dirs[0]) {
+    int i = c.first - 1;
+    if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
+      reached.insert(i);
+      if (p.blue_tiles[i]) {
+        to_check.push_front( make_pair(i, c.second));
+      } else {
+        to_check.push_back( make_pair(i, c.second + 1));
+      }
+    }
+  }
+  //if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
+  if (dirs[1]) {
+    short int i = c.first + p.size -1;
+    if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
+      reached.insert(i);
+      if (p.blue_tiles[i]) {
+        to_check.push_front( make_pair(i, c.second));
+      } else {
+        to_check.push_back( make_pair(i, c.second + 1));
+      }
+    }
+  }
+      //if (DEBUG) cout << "eval shortest path36 " << c.second << endl;
+  if (dirs[2]) {
+    short int i = c.first + p.size;
+    if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
+      reached.insert(i);
+      if (p.blue_tiles[i]) {
+        to_check.push_front( make_pair(i, c.second));
+      } else {
+        to_check.push_back( make_pair(i, c.second + 1));
+      }
+    }
+  }
+      //if (DEBUG) cout << "eval shortest path37 " << c.second << endl;
+  if (dirs[3]) {
+    short int i = c.first + 1;
+    if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
+      reached.insert(i);
+      if (p.blue_tiles[i]) {
+        to_check.push_front( make_pair(i, c.second));
+      } else {
+        to_check.push_back( make_pair(i, c.second + 1));
+      }
+    }
+  }
+      //if (DEBUG) cout << "eval shortest path38 " << c.second << endl;
+  if (dirs[4]) {
+    short int i = c.first - p.size + 1;
+    if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
+      reached.insert(i);
+      if (p.blue_tiles[i]) {
+        to_check.push_front( make_pair(i, c.second));
+      } else {
+        to_check.push_back( make_pair(i, c.second + 1));
+      }
+    }
+  }
+    //if (DEBUG) cout << "eval shortest path39 " << c.second << endl;
+  if (dirs[5]) { //always true
+    short int i = c.first - p.size;
+    if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
+      reached.insert(i);
+      if (p.blue_tiles[i]) {
+        to_check.push_front( make_pair(i, c.second));
+      } else {
+        to_check.push_back( make_pair(i, c.second + 1));
+      }
+    }
+  } //always true
+  //if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
+}
 
 
 
 //target_depth - depth
 //
 //if (DEBUG) cout << "eval shortest path4" << points << endl;
+int points = blue_shortest_path - red_shortest_path;
 evaluated_positions.insert(make_pair(p, make_pair(0, points)));
 //if (DEBUG) cout << "eval shortest path5" << points << endl;
 return points;
@@ -269,7 +394,7 @@ Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer
 		}
     const auto& iter = evaluated_positions.find(p); //should be
     if (iter != evaluated_positions.end() && iter->second.first < target_depth - depth) {
-        iter->second.first = target_depth -depth;
+        iter->second.first = target_depth - depth;
         iter->second.second = best;
     }
 		return Eval_Move(best_pos, best);
@@ -288,7 +413,7 @@ int main(int argc, char *argv[])  {
   string ai_color = "RED";
   short int board_size = 7;
   bool debug = false;
-  short int max_depth = 5;
+  short int max_depth = 12;
 
   int c ;
   while( ( c = getopt (argc, argv, "p:s:d") ) != -1 ) {
@@ -311,13 +436,13 @@ if (ai_color == "BLUE") {
 }
 
 if (board_size >= 7) {
-  max_depth = 4;
+  max_depth = 7;
 } else if(board_size >= 9) {
-  max_depth = 3;
+  max_depth = 6;
 } else if(board_size >= 11) {
-  max_depth = 2;
+  max_depth = 5;
 } else if(board_size >= 13) {
-  max_depth = 2;
+  max_depth = 4;
 }
 
 Position p(board_size);
@@ -325,8 +450,11 @@ Position p(board_size);
 
 unordered_map< Position, pair<short int, short int> , PositionHasher > evaluated_positions; //Position to quality, evaluation
 
-
 Eval_Move val;
+
+
+
+
 auto t1 = chrono::high_resolution_clock::now();
 auto t2 = chrono::high_resolution_clock::now();
 if (ai_red) {
@@ -339,7 +467,7 @@ if (ai_red) {
     }
     cout << p.move_to_output(val.pos) << endl;
     if (debug) {
-    cout << val.evaluation << " Depth: " << i << endl;
+      cout << val.evaluation << " Depth: " << i << endl;
     }
     p.do_move(val.pos, true);
 }
@@ -366,7 +494,7 @@ while(p.num_empty > 0) {
     cout << val.evaluation << " Depth: " << i << endl;
   }
   p.do_move(val.pos, ai_red);
-}
 
+}
 
 }
