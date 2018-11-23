@@ -359,8 +359,7 @@ Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer
       best_pos = candidate_moves[0].pos;
     }
 
-		// Recur for left and
-		// right children
+
 		for (short int i = 0; i < p.num_empty; ++i) {
 			p.do_move(candidate_moves[i].pos, maximizingPlayer);
 			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, true, p, alpha, beta);

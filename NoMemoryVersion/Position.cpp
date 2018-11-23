@@ -57,7 +57,7 @@ class Position {
     }
 
     int input_to_move(string s) {
-      return ((int)s[0] - (int)'A') + ((int)s[1] - (int)'0')*size;
+      return ((int)s[0] - (int)'A') + (stoi(s.substr(1)))*size;
     }
     string move_to_output(int n) {
       char aChar = 'A' + n%size;
