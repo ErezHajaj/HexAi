@@ -60,14 +60,8 @@ bool in_last_2_row(int i, const Position&p) {
 }
 
 
-short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair<short int, short int>, PositionHasher >& evaluated_positions) {
-  //if (DEBUG) cout << "eval shortest path1" << endl;
-  const auto& iter = evaluated_positions.find(p); //should be
-  if (iter != evaluated_positions.end()) {
-      return iter->second.second;
+short int evaluate_shortestpath(const Position& p) {
 
-  }
-  //if (DEBUG) cout << "eval shortest path2" << endl;
   short int red_shortest_path = MAX;
   short int blue_shortest_path = MAX;
   unordered_set<short int> reached;
@@ -135,7 +129,6 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
         }
       }
     }
-        //if (DEBUG) cout << "eval shortest path36 " << c.second << endl;
     if (dirs[2]) {
       short int i = c.first + p.size;
       if (!p.blue_tiles[i] && reached.find(i) == reached.end()) {
@@ -147,7 +140,6 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
         }
       }
     }
-        //if (DEBUG) cout << "eval shortest path37 " << c.second << endl;
     if (dirs[3]) {
       short int i = c.first + 1;
       if (!p.blue_tiles[i] && reached.find(i) == reached.end()) {
@@ -159,7 +151,6 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
         }
       }
     }
-        //if (DEBUG) cout << "eval shortest path38 " << c.second << endl;
     if (dirs[4]) {
       short int i = c.first - p.size + 1;
       if (!p.blue_tiles[i] && reached.find(i) == reached.end()) {
@@ -171,8 +162,7 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
         }
       }
     }
-      //if (DEBUG) cout << "eval shortest path39 " << c.second << endl;
-    if (dirs[5]) { //always true
+    if (dirs[5]) {
       short int i = c.first - p.size;
       if (!p.blue_tiles[i] && reached.find(i) == reached.end()) {
         reached.insert(i);
@@ -182,10 +172,8 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
           to_check.push_back( make_pair(i, c.second + 1));
         }
       }
-    } //always true
-    //if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
+    }
   }
-///BLUE
 
 reached.clear();
 to_check.clear();
@@ -200,25 +188,19 @@ for (short int i = 0; i < p.size; ++i) {
   }
   coord += p.size;
 }
-//if (DEBUG) cout << "eval shortest path3 " << points << endl;
 while(!to_check.empty()) {
   pair<short int, short int> c = to_check.front();
-  //if (DEBUG) cout << c.first << " " << c.second << endl;
   to_check.pop_front();
-  //if (DEBUG) cout << "eval shortest path31 " << c.second << endl;
   if (in_last_row(c.first, p)) {
     blue_shortest_path = c.second;
-    //cout << c.first << " " << points << endl;
     break;
   }
-  //if (DEBUG) cout << "eval shortest path32 " << c.second << endl;
   bitset<6> dirs(0b111111);
   if (in_first_row(c.first, p)) {
     dirs &= bitset<6>(0b011000);
   } else if (in_first_2_row(c.first, p)) {
     dirs &= bitset<6>(0b111100);
   }
-  //if (DEBUG) cout << "eval shortest path33 " << c.second << endl;
   if(in_first_col(c.first, p)) {
     dirs &= bitset<6>(0b001100);
   } else if (in_first_2_col(c.first, p)) {
@@ -228,7 +210,6 @@ while(!to_check.empty()) {
   } else if (in_last_2_col(c.first, p)) {
     dirs &= bitset<6>(0b111100);
   }
-  //if (DEBUG) cout << "eval shortest path34 " << c.second << endl;
 
   if (dirs[0]) {
     int i = c.first - 1;
@@ -241,7 +222,7 @@ while(!to_check.empty()) {
       }
     }
   }
-  //if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
+
   if (dirs[1]) {
     short int i = c.first + p.size -1;
     if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
@@ -253,7 +234,6 @@ while(!to_check.empty()) {
       }
     }
   }
-      //if (DEBUG) cout << "eval shortest path36 " << c.second << endl;
   if (dirs[2]) {
     short int i = c.first + p.size;
     if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
@@ -265,7 +245,6 @@ while(!to_check.empty()) {
       }
     }
   }
-      //if (DEBUG) cout << "eval shortest path37 " << c.second << endl;
   if (dirs[3]) {
     short int i = c.first + 1;
     if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
@@ -277,7 +256,6 @@ while(!to_check.empty()) {
       }
     }
   }
-      //if (DEBUG) cout << "eval shortest path38 " << c.second << endl;
   if (dirs[4]) {
     short int i = c.first - p.size + 1;
     if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
@@ -289,7 +267,6 @@ while(!to_check.empty()) {
       }
     }
   }
-    //if (DEBUG) cout << "eval shortest path39 " << c.second << endl;
   if (dirs[5]) { //always true
     short int i = c.first - p.size;
     if (!p.red_tiles[i] && reached.find(i) == reached.end()) {
@@ -301,32 +278,24 @@ while(!to_check.empty()) {
       }
     }
   } //always true
-  //if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
 }
 
-
-
-//target_depth - depth
-//
-//if (DEBUG) cout << "eval shortest path4" << points << endl;
 int points = blue_shortest_path - red_shortest_path;
-evaluated_positions.insert(make_pair(p, make_pair(0, points)));
-//if (DEBUG) cout << "eval shortest path5" << points << endl;
 return points;
 }
 
 
 
 
-Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer, Position& p, short int alpha, short int beta, unordered_map< Position, pair<short int, short int>, PositionHasher >& evaluated_positions) {
+Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer, Position& p, short int alpha, short int beta) {
   if (p.num_empty == 0) {
-    return Eval_Move(0, evaluate_shortestpath(p, evaluated_positions));
+    return Eval_Move(0, evaluate_shortestpath(p));
   }
 	vector<Eval_Move> candidate_moves(p.num_empty);
   p.get_moves(candidate_moves);
 	for (short int i = 0; i < p.num_empty; ++i) { //possibly better for loop
 		p.do_move(candidate_moves[i].pos, maximizingPlayer);
-		candidate_moves[i].evaluation = evaluate_shortestpath(p, evaluated_positions);
+		candidate_moves[i].evaluation = evaluate_shortestpath(p);
 		p.undo_move(candidate_moves[i].pos);
 	}
 	if (maximizingPlayer) {
@@ -347,7 +316,7 @@ Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer
 
 		for (short int i = 0; i < p.num_empty; ++i) {
 			p.do_move(candidate_moves[i].pos, maximizingPlayer);
-			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, false, p, alpha, beta, evaluated_positions);
+			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, false, p, alpha, beta);
 			p.undo_move(candidate_moves[i].pos);
 			if (opponent_eval_move.evaluation > best) {
 				best = opponent_eval_move.evaluation;
@@ -359,24 +328,18 @@ Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer
 		}
     //TO DO: Add to evaluated positions
 
-    const auto& iter = evaluated_positions.find(p); //should be
-    if (iter != evaluated_positions.end() && iter->second.first < target_depth - depth) {
-        iter->second.first = target_depth - depth;
-        iter->second.second = best;
-    }
 		return Eval_Move(best_pos, best);
 	} else {
 		short int best = MAX;
-    short int best_pos = 0;
+    short int best_pos = -1;
     if (p.num_empty > 0) {
       best_pos = candidate_moves[0].pos;
     }
 
-		// Recur for left and
-		// right children
+
 		for (short int i = 0; i < p.num_empty; ++i) {
 			p.do_move(candidate_moves[i].pos, maximizingPlayer);
-			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, true, p, alpha, beta, evaluated_positions);
+			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, true, p, alpha, beta);
 			p.undo_move(candidate_moves[i].pos);
 			if (opponent_eval_move.evaluation < best) {
 				best = opponent_eval_move.evaluation;
@@ -387,11 +350,6 @@ Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer
 			if (beta <= alpha)
 				break;
 		}
-    const auto& iter = evaluated_positions.find(p); //should be
-    if (iter != evaluated_positions.end() && iter->second.first < target_depth - depth) {
-        iter->second.first = target_depth - depth;
-        iter->second.second = best;
-    }
 		return Eval_Move(best_pos, best);
 
 	}
@@ -407,8 +365,8 @@ Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer
 int main(int argc, char *argv[])  {
   string ai_color = "RED";
   short int board_size = 7;
-  bool debug = false;
   short int max_depth = 12;
+  bool debug = false;
 
   int c ;
   while( ( c = getopt (argc, argv, "p:s:d") ) != -1 ) {
@@ -442,9 +400,6 @@ if (board_size >= 7) {
 
 Position p(board_size);
 
-
-unordered_map< Position, pair<short int, short int> , PositionHasher > evaluated_positions; //Position to quality, evaluation
-
 Eval_Move val;
 
 
@@ -452,42 +407,40 @@ Eval_Move val;
 
 auto t1 = chrono::high_resolution_clock::now();
 auto t2 = chrono::high_resolution_clock::now();
+
+//Spend time to add to tablebase, but do generic move
+
 if (ai_red) {
-    int i = 1;
-    while (chrono::duration_cast<chrono::milliseconds>(t2-t1).count() < 200 && i < max_depth) {
-      //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
-      t1 = chrono::high_resolution_clock::now();
-      val = minimax(0, i, false, p, MIN, MAX, evaluated_positions);
-      t2 = chrono::high_resolution_clock::now();
-      ++i;
-    }
-    //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
-    cout << p.move_to_output(val.pos) << endl;
-    if (debug) {
-      cout << val.evaluation << " Depth: " << i << endl;
-    }
-    p.do_move(val.pos, true);
+    // int i = 1;
+    // while (chrono::duration_cast<chrono::milliseconds>(t2-t1).count() < 200 && i < max_depth) {
+    //   t1 = chrono::high_resolution_clock::now();
+    //   val = minimax(0, i, false, p, MIN, MAX);
+    //   t2 = chrono::high_resolution_clock::now();
+    //   ++i;
+    // }
+    // cout << p.move_to_output(val.pos) << endl;
+    // if (debug) {
+    //   cout << val.evaluation << " Depth: " << i << endl;
+    // }
+    // p.do_move(val.pos, true);
+    p.do_move(p.size*p.size/2, true);
 }
 
 
 while(p.num_empty > 0) {
   string player_move;
   cin >> player_move;
-  //cout << "Played: " << player_move << " = " << p.input_to_move(player_move) << endl;
   p.do_move(p.input_to_move(player_move), !ai_red);
   int i = 1;
   t1 = chrono::high_resolution_clock::now();
   t2 = chrono::high_resolution_clock::now();
   while (chrono::duration_cast<chrono::milliseconds>(t2-t1).count() < 200 && i < max_depth) {
-    //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
     t1 = chrono::high_resolution_clock::now();
-    val = minimax(0, i, !ai_red, p, MIN, MAX, evaluated_positions);
+    val = minimax(0, i, !ai_red, p, MIN, MAX);
     t2 = chrono::high_resolution_clock::now();
     chrono::duration_cast<chrono::milliseconds>(t2-t1).count();
     ++i;
   }
-  //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
-  //cout <<  val.pos << " " << p.move_to_output(val.pos) << " " << val.evaluation << endl;
   cout << p.move_to_output(val.pos) << endl;
   if (debug) {
     cout << val.evaluation << " Depth: " << i << endl;

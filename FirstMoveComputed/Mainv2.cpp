@@ -60,14 +60,8 @@ bool in_last_2_row(int i, const Position&p) {
 }
 
 
-short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair<short int, short int>, PositionHasher >& evaluated_positions) {
-  //if (DEBUG) cout << "eval shortest path1" << endl;
-  const auto& iter = evaluated_positions.find(p); //should be
-  if (iter != evaluated_positions.end()) {
-      return iter->second.second;
+short int evaluate_shortestpath(const Position& p) {
 
-  }
-  //if (DEBUG) cout << "eval shortest path2" << endl;
   short int red_shortest_path = MAX;
   short int blue_shortest_path = MAX;
   unordered_set<short int> reached;
@@ -310,23 +304,21 @@ while(!to_check.empty()) {
 //
 //if (DEBUG) cout << "eval shortest path4" << points << endl;
 int points = blue_shortest_path - red_shortest_path;
-evaluated_positions.insert(make_pair(p, make_pair(0, points)));
-//if (DEBUG) cout << "eval shortest path5" << points << endl;
 return points;
 }
 
 
 
 
-Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer, Position& p, short int alpha, short int beta, unordered_map< Position, pair<short int, short int>, PositionHasher >& evaluated_positions) {
+Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer, Position& p, short int alpha, short int beta) {
   if (p.num_empty == 0) {
-    return Eval_Move(0, evaluate_shortestpath(p, evaluated_positions));
+    return Eval_Move(0, evaluate_shortestpath(p));
   }
 	vector<Eval_Move> candidate_moves(p.num_empty);
   p.get_moves(candidate_moves);
 	for (short int i = 0; i < p.num_empty; ++i) { //possibly better for loop
 		p.do_move(candidate_moves[i].pos, maximizingPlayer);
-		candidate_moves[i].evaluation = evaluate_shortestpath(p, evaluated_positions);
+		candidate_moves[i].evaluation = evaluate_shortestpath(p);
 		p.undo_move(candidate_moves[i].pos);
 	}
 	if (maximizingPlayer) {
@@ -347,7 +339,7 @@ Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer
 
 		for (short int i = 0; i < p.num_empty; ++i) {
 			p.do_move(candidate_moves[i].pos, maximizingPlayer);
-			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, false, p, alpha, beta, evaluated_positions);
+			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, false, p, alpha, beta);
 			p.undo_move(candidate_moves[i].pos);
 			if (opponent_eval_move.evaluation > best) {
 				best = opponent_eval_move.evaluation;
@@ -359,24 +351,18 @@ Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer
 		}
     //TO DO: Add to evaluated positions
 
-    const auto& iter = evaluated_positions.find(p); //should be
-    if (iter != evaluated_positions.end() && iter->second.first < target_depth - depth) {
-        iter->second.first = target_depth - depth;
-        iter->second.second = best;
-    }
 		return Eval_Move(best_pos, best);
 	} else {
 		short int best = MAX;
-    short int best_pos = 0;
+    short int best_pos = -1;
     if (p.num_empty > 0) {
       best_pos = candidate_moves[0].pos;
     }
 
-		// Recur for left and
-		// right children
+
 		for (short int i = 0; i < p.num_empty; ++i) {
 			p.do_move(candidate_moves[i].pos, maximizingPlayer);
-			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, true, p, alpha, beta, evaluated_positions);
+			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, true, p, alpha, beta);
 			p.undo_move(candidate_moves[i].pos);
 			if (opponent_eval_move.evaluation < best) {
 				best = opponent_eval_move.evaluation;
@@ -387,11 +373,6 @@ Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer
 			if (beta <= alpha)
 				break;
 		}
-    const auto& iter = evaluated_positions.find(p); //should be
-    if (iter != evaluated_positions.end() && iter->second.first < target_depth - depth) {
-        iter->second.first = target_depth - depth;
-        iter->second.second = best;
-    }
 		return Eval_Move(best_pos, best);
 
 	}
@@ -407,8 +388,8 @@ Eval_Move minimax(short int depth, short int target_depth, bool maximizingPlayer
 int main(int argc, char *argv[])  {
   string ai_color = "RED";
   short int board_size = 7;
-  bool debug = false;
   short int max_depth = 12;
+  bool debug = false;
 
   int c ;
   while( ( c = getopt (argc, argv, "p:s:d") ) != -1 ) {
@@ -442,9 +423,6 @@ if (board_size >= 7) {
 
 Position p(board_size);
 
-
-unordered_map< Position, pair<short int, short int> , PositionHasher > evaluated_positions; //Position to quality, evaluation
-
 Eval_Move val;
 
 
@@ -454,19 +432,20 @@ auto t1 = chrono::high_resolution_clock::now();
 auto t2 = chrono::high_resolution_clock::now();
 if (ai_red) {
     int i = 1;
-    while (chrono::duration_cast<chrono::milliseconds>(t2-t1).count() < 200 && i < max_depth) {
-      //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
+    while (chrono::duration_cast<chrono::milliseconds>(t2-t1).count() < 231 && i < max_depth) {
       t1 = chrono::high_resolution_clock::now();
-      val = minimax(0, i, false, p, MIN, MAX, evaluated_positions);
+      val = minimax(0, i, false, p, MIN, MAX);
       t2 = chrono::high_resolution_clock::now();
       ++i;
     }
-    //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
     cout << p.move_to_output(val.pos) << endl;
-    if (debug) {
-      cout << val.evaluation << " Depth: " << i << endl;
-    }
+    // if (debug) {
+    //   cout << val.evaluation << " Depth: " << i << endl;
+    // }
     p.do_move(val.pos, true);
+    // int move = p.size*p.size/2; //For some reason doesn't help
+    // cout << p.move_to_output(move) << endl;
+    // p.do_move(move, true);
 }
 
 
@@ -478,10 +457,10 @@ while(p.num_empty > 0) {
   int i = 1;
   t1 = chrono::high_resolution_clock::now();
   t2 = chrono::high_resolution_clock::now();
-  while (chrono::duration_cast<chrono::milliseconds>(t2-t1).count() < 200 && i < max_depth) {
+  while (chrono::duration_cast<chrono::milliseconds>(t2-t1).count() < 231 && i < max_depth) {
     //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
     t1 = chrono::high_resolution_clock::now();
-    val = minimax(0, i, !ai_red, p, MIN, MAX, evaluated_positions);
+    val = minimax(0, i, !ai_red, p, MIN, MAX);
     t2 = chrono::high_resolution_clock::now();
     chrono::duration_cast<chrono::milliseconds>(t2-t1).count();
     ++i;
@@ -489,9 +468,9 @@ while(p.num_empty > 0) {
   //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
   //cout <<  val.pos << " " << p.move_to_output(val.pos) << " " << val.evaluation << endl;
   cout << p.move_to_output(val.pos) << endl;
-  if (debug) {
-    cout << val.evaluation << " Depth: " << i << endl;
-  }
+  // if (debug) {
+  //   cout << val.evaluation << " Depth: " << i << endl;
+  // }
   p.do_move(val.pos, ai_red);
 
 }

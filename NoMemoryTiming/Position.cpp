@@ -23,35 +23,29 @@ inline void hash_combine(std::size_t & seed, const T & v)
 
 class Position {
   public:
-    Position(short int s):tiles(2, vector<bool>(s*s)), size(s), num_empty(s*s) {
+    Position(short int s):red_tiles((s*s), false), blue_tiles((s*s), false), size(s), num_empty(s*s) {
     }
 
 
     void do_move(short int pos, bool red) {
-        tiles[0][pos] = red;
-        tiles[1][pos] = !red;
-
-      //is_red = !red;
+        red_tiles[pos] = red;
+        blue_tiles[pos] = !red;
       --num_empty;
     }
 
     void undo_move(short int pos) {
-      //if (red) {
-        tiles[0][pos] = false;
-      //} else {
-        tiles[1][pos] = false;
-      //}
-      //is_red = !red;
+      red_tiles[pos] = false;
+      blue_tiles[pos] = false;
       ++num_empty;
     }
 
     void get_moves(vector<Eval_Move>& candidate_moves) {
       short int counter = 0;
       for (short int i = 0; i < size*size; ++i) {
-          if (!tiles[0][i] && !tiles[1][i]) {
-            candidate_moves[counter] = Eval_Move(i);
-            ++counter;
-          }
+        if (!red_tiles[i] && !blue_tiles[i]) {
+          candidate_moves[counter] = Eval_Move(i);
+          ++counter;
+        }
       }
     }
 
@@ -69,42 +63,21 @@ class Position {
       if (num_empty != other.num_empty || size != other.size) {
         return false;
       }
-      return (tiles == other.tiles);
+      return (red_tiles == other.red_tiles && blue_tiles == other.blue_tiles);
     }
 
 
     short int num_empty;
     short int size;
-    vector< vector<bool> > tiles;
-    //bool is_red;
+    vector<bool> red_tiles;
+    vector<bool> blue_tiles;
 };
 
 struct PositionHasher {
   size_t operator()(const Position & obj) const {
     size_t seed = 0;
-    hash_combine(seed, obj.tiles[0]);
-    hash_combine(seed, obj.tiles[1]);
-    return seed;
-  }
-};
-
-struct Neighbor_State {
-
-  Neighbor_State(bitset<6> rs, bitset<6> bs): red_state(rs), blue_state(bs){
-  }
-
-  bool operator==(const Neighbor_State &other) const {
-    return(red_state == other.red_state && blue_state == other.blue_state);
-  }
-  bitset<6> red_state;
-  bitset<6> blue_state;
-};
-
-struct NeighborHasher {
-  size_t operator()(const Neighbor_State& obj) const {
-    size_t seed = 0;
-    hash_combine(seed, obj.red_state);
-    hash_combine(seed, obj.blue_state);
+    hash_combine(seed, obj.red_tiles);
+    hash_combine(seed, obj.blue_tiles);
     return seed;
   }
 };
