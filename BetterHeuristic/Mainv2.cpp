@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <deque>
 #include <chrono>
+#include <math.h>
 #include <bitset>
 #include <algorithm>
 #include "Position.cpp"
@@ -23,7 +24,9 @@ using namespace std;
 const int MAX = 100;
 const int MIN = -100;
 
-const bool DEBUG = false;
+const bool DEBUG = true;
+
+const float MULTI_PATH_WEIGHT = 0.5;
 
 const unordered_set<Neighbor_State, NeighborHasher> pruned_dead( {Neighbor_State(bitset<6>(0b111000), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b011100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b001110), bitset<6>(0b100000)),
 Neighbor_State(bitset<6>(0b000111), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b100011), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110001), bitset<6>(0b000100)),
@@ -80,6 +83,9 @@ Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001))
 
 });
 
+float sigmoidP(float x) {
+    return 1 / (1 + exp(-x)) - 0.5;
+}
 
 
 bool in_first_col(int i, const Position&p) {
@@ -117,8 +123,10 @@ bool in_last_2_row(int i, const Position&p) {
   return (a <= 1);
 }
 
+//NUMBER OF SHORTEST PATHS ALGORITHM IS SLIGHTLY BROKEN. Since there are cost edges of 0. It propogates a number of shortest paths that undervalues central tiles.
 
-short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair<short int, short int>, PositionHasher >& evaluated_positions) {
+
+float evaluate_shortestpath(const Position& p, unordered_map< Position, pair<short int, float>, PositionHasher >& evaluated_positions) {
 
   const auto& iter = evaluated_positions.find(p); //should be
   if (iter != evaluated_positions.end()) {
@@ -128,37 +136,50 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
 
   short int red_shortest_path = MAX;
   short int blue_shortest_path = MAX;
-  unordered_set<short int> reached;
+  int num_red_shortest_paths = 0;
+  int num_blue_shortest_paths = 0;
+  unordered_map<short int, pair<short int, short int> > reached; //Reached position, shortest path, number of paths
   deque < pair<short int, short int> > to_check;
 
 
   for (short int i = 0; i < p.size; ++i) {
     if (p.tiles[0][i]) {
-      reached.insert(i);
+      reached.insert(make_pair(i, make_pair(0, 1)));
       to_check.push_front( make_pair(i, 0) );
     } else if (!p.tiles[1][i]) {
-      reached.insert(i);
+      reached.insert(make_pair(i, make_pair(1, 1)));
       to_check.push_back( make_pair(i, 1) );
     }
   }
-  //if (DEBUG) cout << "eval shortest path3 " << points << endl;
+  // if (DEBUG) cout << "eval shortest path3 "  << endl;
+  bool end_found_flag = false;
+  vector<short int> shortest_nodes;
+
   while(!to_check.empty()) {
     pair<short int, short int> c = to_check.front();
-    //if (DEBUG) cout << c.first << " " << c.second << endl;
     to_check.pop_front();
-    //if (DEBUG) cout << "eval shortest path31 " << c.second << endl;
-    if (in_last_col(c.first, p)) {
-      red_shortest_path = c.second;
+    if(end_found_flag && red_shortest_path != c.second) {
+      for (short int s : shortest_nodes) {
+        num_red_shortest_paths += reached.at(s).second;
+      }
       break;
     }
-    //if (DEBUG) cout << "eval shortest path32 " << c.second << endl;
+    if (in_last_col(c.first, p)) {
+      shortest_nodes.push_back(c.first);
+      //num_red_shortest_paths += reached.at(c.first).second;
+      if (!end_found_flag) {
+        red_shortest_path = c.second;
+        end_found_flag = true;
+      }
+    }
+    // if (DEBUG) cout << "eval shortest path32 " << c.second << endl;
     bitset<6> dirs(0b111111);
     if (in_first_col(c.first, p)) {
       dirs &= bitset<6>(0b000110);
     } else if (in_first_2_col(c.first, p)) {
       dirs &= bitset<6>(0b001111);
     }
-    //if (DEBUG) cout << "eval shortest path33 " << c.second << endl;
+    // if (DEBUG) cout << "eval shortest path33 " << c.second << endl;
     if(in_first_row(c.first, p)) {
       dirs &= bitset<6>(0b001100);
     } else if (in_first_2_row(c.first, p)) {
@@ -168,115 +189,193 @@ short int evaluate_shortestpath(const Position& p, unordered_map< Position, pair
     } else if (in_last_2_row(c.first, p)) {
       dirs &= bitset<6>(0b001111);
     }
-    //if (DEBUG) cout << "eval shortest path34 " << c.second << endl;
+    // if (DEBUG) cout << "eval shortest path34 " << c.second << endl;
 
     if (dirs[0]) {
       int i = c.first - 1;
-      if (!p.tiles[1][i] && reached.find(i) == reached.end()) {
-        reached.insert(i);
+      const auto& iter = reached.find(i);
+      const auto current = reached.at(c.first);
+      if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
           to_check.push_front( make_pair(i, c.second));
+          reached.insert(make_pair(i, make_pair(c.second, current.second)));
         } else {
           to_check.push_back( make_pair(i, c.second + 1));
+          reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+        }
+      } else if (iter != reached.end() && !p.tiles[1][i]) {
+        if (p.tiles[0][i]) {
+          if (iter->second.first >= current.first) {
+              iter->second.second += current.second;
+          }
+        } else if (iter->second.first > current.first) {
+            iter->second.second += current.second;
         }
       }
     }
-    //if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
+    // if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
     if (dirs[1]) {
       short int i = c.first + p.size -1;
-      if (!p.tiles[1][i] && reached.find(i) == reached.end()) {
-        reached.insert(i);
+      const auto& iter = reached.find(i);
+      const auto current = reached.at(c.first);
+      if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
           to_check.push_front( make_pair(i, c.second));
+          reached.insert(make_pair(i, make_pair(c.second, current.second)));
         } else {
           to_check.push_back( make_pair(i, c.second + 1));
+          reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+        }
+      } else if (iter != reached.end() && !p.tiles[1][i]) {
+        if (p.tiles[0][i]) {
+          if (iter->second.first >= current.first) {
+              iter->second.second += current.second;
+          }
+        } else if (iter->second.first > current.first) {
+            iter->second.second += current.second;
         }
       }
     }
-        //if (DEBUG) cout << "eval shortest path36 " << c.second << endl;
+        // if (DEBUG) cout << "eval shortest path36 " << c.second << endl;
     if (dirs[2]) {
       short int i = c.first + p.size;
-      if (!p.tiles[1][i] && reached.find(i) == reached.end()) {
-        reached.insert(i);
+      const auto& iter = reached.find(i);
+      const auto current = reached.at(c.first);
+      if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
           to_check.push_front( make_pair(i, c.second));
+          reached.insert(make_pair(i, make_pair(c.second, current.second)));
         } else {
           to_check.push_back( make_pair(i, c.second + 1));
+          reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+        }
+      } else if (iter != reached.end() && !p.tiles[1][i]) {
+        if (p.tiles[0][i]) {
+          if (iter->second.first >= current.first) {
+              iter->second.second += current.second;
+          }
+        } else if (iter->second.first > current.first) {
+            iter->second.second += current.second;
         }
       }
     }
-        //if (DEBUG) cout << "eval shortest path37 " << c.second << endl;
+        // if (DEBUG) cout << "eval shortest path37 " << c.second << endl;
     if (dirs[3]) {
       short int i = c.first + 1;
-      if (!p.tiles[1][i] && reached.find(i) == reached.end()) {
-        reached.insert(i);
+      const auto& iter = reached.find(i);
+      const auto current = reached.at(c.first);
+      if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
           to_check.push_front( make_pair(i, c.second));
+          reached.insert(make_pair(i, make_pair(c.second, current.second)));
         } else {
           to_check.push_back( make_pair(i, c.second + 1));
+          reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+        }
+      } else if (iter != reached.end() && !p.tiles[1][i]) {
+        if (p.tiles[0][i]) {
+          if (iter->second.first >= current.first) {
+              iter->second.second += current.second;
+          }
+        } else if (iter->second.first > current.first) {
+            iter->second.second += current.second;
         }
       }
     }
-        //if (DEBUG) cout << "eval shortest path38 " << c.second << endl;
+        //// if (DEBUG) cout << "eval shortest path38 " << c.second << endl;
     if (dirs[4]) {
       short int i = c.first - p.size + 1;
-      if (!p.tiles[1][i] && reached.find(i) == reached.end()) {
-        reached.insert(i);
+      const auto& iter = reached.find(i);
+      const auto current = reached.at(c.first);
+      if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
           to_check.push_front( make_pair(i, c.second));
+          reached.insert(make_pair(i, make_pair(c.second, current.second)));
         } else {
           to_check.push_back( make_pair(i, c.second + 1));
+          reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+        }
+      } else if (iter != reached.end() && !p.tiles[1][i]) {
+        if (p.tiles[0][i]) {
+          if (iter->second.first >= current.first) {
+              iter->second.second += current.second;
+          }
+        } else if (iter->second.first > current.first) {
+            iter->second.second += current.second;
         }
       }
     }
-      //if (DEBUG) cout << "eval shortest path39 " << c.second << endl;
+      //// if (DEBUG) cout << "eval shortest path39 " << c.second << endl;
     if (dirs[5]) { //always true
       short int i = c.first - p.size;
-      if (!p.tiles[1][i] && reached.find(i) == reached.end()) {
-        reached.insert(i);
+      const auto& iter = reached.find(i);
+      const auto current = reached.at(c.first);
+      if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
           to_check.push_front( make_pair(i, c.second));
+          reached.insert(make_pair(i, make_pair(c.second, current.second)));
         } else {
           to_check.push_back( make_pair(i, c.second + 1));
+          reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+        }
+      } else if (iter != reached.end() && !p.tiles[1][i]) {
+        if (p.tiles[0][i]) {
+          if (iter->second.first >= current.first) {
+              iter->second.second += current.second;
+          }
+        } else if (iter->second.first > current.first) {
+            iter->second.second += current.second;
         }
       }
-    } //always true
-    //if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
-  }
+    }
+}
 ///BLUE
+
+//cout << "Red Reached: " << endl;
+// for (auto p : reached) {
+//   cout << p.first << " : " << p.second.first << " "  << p.second.second << endl;
+// }
 
 reached.clear();
 to_check.clear();
+shortest_nodes.clear();
 short int coord = 0;
 for (short int i = 0; i < p.size; ++i) {
   if (p.tiles[1][coord]) {
-    reached.insert(coord);
-    to_check.push_front( make_pair(coord, 0) );
+    reached.insert(make_pair(coord, make_pair(0, 1)));
+    to_check.push_front( make_pair(coord, 0));
   } else if (!p.tiles[0][coord]) {
-    reached.insert(coord);
+    reached.insert(make_pair(coord, make_pair(1, 1)));
     to_check.push_back( make_pair(coord, 1) );
   }
   coord += p.size;
 }
-//if (DEBUG) cout << "eval shortest path3 " << points << endl;
+// if (DEBUG) cout << "eval shortest path3 "  << endl;
+end_found_flag = false;
 while(!to_check.empty()) {
   pair<short int, short int> c = to_check.front();
-  //if (DEBUG) cout << c.first << " " << c.second << endl;
   to_check.pop_front();
-  //if (DEBUG) cout << "eval shortest path31 " << c.second << endl;
-  if (in_last_row(c.first, p)) {
-    blue_shortest_path = c.second;
-    //cout << c.first << " " << points << endl;
+  if(end_found_flag && blue_shortest_path != c.second) {
+    for (short int s : shortest_nodes) {
+      num_blue_shortest_paths += reached.at(s).second;
+    }
     break;
   }
-  //if (DEBUG) cout << "eval shortest path32 " << c.second << endl;
+  if (in_last_row(c.first, p)) {
+    shortest_nodes.push_back(c.first);
+    //num_red_shortest_paths += reached.at(c.first).second;
+    if (!end_found_flag) {
+      blue_shortest_path = c.second;
+      end_found_flag = true;
+    }
+  }
   bitset<6> dirs(0b111111);
   if (in_first_row(c.first, p)) {
     dirs &= bitset<6>(0b011000);
   } else if (in_first_2_row(c.first, p)) {
     dirs &= bitset<6>(0b111100);
   }
-  //if (DEBUG) cout << "eval shortest path33 " << c.second << endl;
+  // if (DEBUG) cout << "eval shortest path33 " << c.second << endl;
   if(in_first_col(c.first, p)) {
     dirs &= bitset<6>(0b001100);
   } else if (in_first_2_col(c.first, p)) {
@@ -286,93 +385,168 @@ while(!to_check.empty()) {
   } else if (in_last_2_col(c.first, p)) {
     dirs &= bitset<6>(0b111100);
   }
-  //if (DEBUG) cout << "eval shortest path34 " << c.second << endl;
+  // if (DEBUG) cout << "eval shortest path34 " << c.second << endl;
 
   if (dirs[0]) {
     int i = c.first - 1;
-    if (!p.tiles[0][i] && reached.find(i) == reached.end()) {
-      reached.insert(i);
+    const auto& iter = reached.find(i);
+    const auto current = reached.at(c.first);
+    if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
         to_check.push_front( make_pair(i, c.second));
+        reached.insert(make_pair(i, make_pair(c.second, current.second)));
       } else {
         to_check.push_back( make_pair(i, c.second + 1));
+        reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+      }
+    } else if (iter != reached.end() && !p.tiles[0][i]) {
+      if (p.tiles[1][i]) {
+        if (iter->second.first >= current.first) {
+            iter->second.second += current.second;
+        }
+      } else if (iter->second.first > current.first) {
+          iter->second.second += current.second;
       }
     }
   }
-  //if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
+  // if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
   if (dirs[1]) {
     short int i = c.first + p.size -1;
-    if (!p.tiles[0][i] && reached.find(i) == reached.end()) {
-      reached.insert(i);
+    const auto& iter = reached.find(i);
+    const auto current = reached.at(c.first);
+    if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
         to_check.push_front( make_pair(i, c.second));
+        reached.insert(make_pair(i, make_pair(c.second, current.second)));
       } else {
         to_check.push_back( make_pair(i, c.second + 1));
+        reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+      }
+    } else if (iter != reached.end() && !p.tiles[0][i]) {
+      if (p.tiles[1][i]) {
+        if (iter->second.first >= current.first) {
+            iter->second.second += current.second;
+        }
+      } else if (iter->second.first > current.first) {
+          iter->second.second += current.second;
       }
     }
   }
-      //if (DEBUG) cout << "eval shortest path36 " << c.second << endl;
+      //// if (DEBUG) cout << "eval shortest path36 " << c.second << endl;
   if (dirs[2]) {
     short int i = c.first + p.size;
-    if (!p.tiles[0][i] && reached.find(i) == reached.end()) {
-      reached.insert(i);
+    const auto& iter = reached.find(i);
+    const auto current = reached.at(c.first);
+    if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
         to_check.push_front( make_pair(i, c.second));
+        reached.insert(make_pair(i, make_pair(c.second, current.second)));
       } else {
         to_check.push_back( make_pair(i, c.second + 1));
+        reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+      }
+    } else if (iter != reached.end() && !p.tiles[0][i]) {
+      if (p.tiles[1][i]) {
+        if (iter->second.first >= current.first) {
+            iter->second.second += current.second;
+        }
+      } else if (iter->second.first > current.first) {
+          iter->second.second += current.second;
       }
     }
   }
-      //if (DEBUG) cout << "eval shortest path37 " << c.second << endl;
+      //// if (DEBUG) cout << "eval shortest path37 " << c.second << endl;
   if (dirs[3]) {
     short int i = c.first + 1;
-    if (!p.tiles[0][i] && reached.find(i) == reached.end()) {
-      reached.insert(i);
+    const auto& iter = reached.find(i);
+    const auto current = reached.at(c.first);
+    if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
         to_check.push_front( make_pair(i, c.second));
+        reached.insert(make_pair(i, make_pair(c.second, current.second)));
       } else {
         to_check.push_back( make_pair(i, c.second + 1));
+        reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+      }
+    } else if (iter != reached.end() && !p.tiles[0][i]) {
+      if (p.tiles[1][i]) {
+        if (iter->second.first >= current.first) {
+            iter->second.second += current.second;
+        }
+      } else if (iter->second.first > current.first) {
+          iter->second.second += current.second;
       }
     }
   }
-      //if (DEBUG) cout << "eval shortest path38 " << c.second << endl;
+      //// if (DEBUG) cout << "eval shortest path38 " << c.second << endl;
   if (dirs[4]) {
     short int i = c.first - p.size + 1;
-    if (!p.tiles[0][i] && reached.find(i) == reached.end()) {
-      reached.insert(i);
+    const auto& iter = reached.find(i);
+    const auto current = reached.at(c.first);
+    if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
         to_check.push_front( make_pair(i, c.second));
+        reached.insert(make_pair(i, make_pair(c.second, current.second)));
       } else {
         to_check.push_back( make_pair(i, c.second + 1));
+        reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+      }
+    } else if (iter != reached.end() && !p.tiles[0][i]) {
+      if (p.tiles[1][i]) {
+        if (iter->second.first >= current.first) {
+            iter->second.second += current.second;
+        }
+      } else if (iter->second.first > current.first) {
+          iter->second.second += current.second;
       }
     }
   }
-    //if (DEBUG) cout << "eval shortest path39 " << c.second << endl;
+    //// if (DEBUG) cout << "eval shortest path39 " << c.second << endl;
   if (dirs[5]) { //always true
     short int i = c.first - p.size;
-    if (!p.tiles[0][i] && reached.find(i) == reached.end()) {
-      reached.insert(i);
+    const auto& iter = reached.find(i);
+    const auto current = reached.at(c.first);
+    if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
         to_check.push_front( make_pair(i, c.second));
+        reached.insert(make_pair(i, make_pair(c.second, current.second)));
       } else {
         to_check.push_back( make_pair(i, c.second + 1));
+        reached.insert(make_pair(i, make_pair(c.second + 1, current.second)));
+      }
+    } else if (iter != reached.end() && !p.tiles[0][i]) {
+      if (p.tiles[1][i]) {
+        if (iter->second.first >= current.first) {
+            iter->second.second += current.second;
+        }
+      } else if (iter->second.first > current.first) {
+          iter->second.second += current.second;
       }
     }
-  } //always true
-  //if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
+  }
+  //// if (DEBUG) cout << "eval shortest path35 " << c.second << endl;
 }
 
 
 
 //target_depth - depth
 //
-//if (DEBUG) cout << "eval shortest path4" << points << endl;
-int points = blue_shortest_path - red_shortest_path;
+//// if (DEBUG) cout << "eval shortest path4"  << endl;
+//cout << "Getting output" << endl;
+float shortest_path_value = (log(num_red_shortest_paths) - log(num_blue_shortest_paths));
+float points = blue_shortest_path - red_shortest_path + sigmoidP(shortest_path_value);
+//if (DEBUG) cout << points << endl;
+//cout << "Got output" << endl;
 evaluated_positions.insert(make_pair(p, make_pair(0, points)));
-//cout << points << endl;
-//cout << p << endl;
+// cout << "Blue reached" << endl;
+// for (auto p : reached) {
+//   cout << p.first << " : " << p.second.first << " "  << p.second.second << endl;
+// }
+// cout << "Red Shortest:" << red_shortest_path << " Red num: " << num_red_shortest_paths << " Blue Shortest:" << blue_shortest_path << " Blue num: " << num_blue_shortest_paths << endl;
+
 return points;
 }
+
 
 bitset<6> getNeighbors(bool is_red, int pos, const Position& p) {
   bitset<6> neighbors = bitset<6>();
@@ -423,8 +597,9 @@ bool in_pruned_states(int pos, const Position& p) {
 }
 
 
-Eval_Move minimax(short int depth, short int target_depth, Position& p, short int alpha, short int beta,unordered_map< Position, pair<short int, short int>, PositionHasher >& evaluated_positions) {
+Eval_Move minimax(short int depth, short int target_depth, Position& p, float alpha, float beta,unordered_map< Position, pair<short int, float>, PositionHasher >& evaluated_positions) {
   if (p.num_empty == 0) {
+    //cout << "Empty" << endl;
     return Eval_Move(0, evaluate_shortestpath(p, evaluated_positions));
   }
 	vector<Eval_Move> candidate_moves(p.num_empty);
@@ -435,8 +610,13 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, short in
       //cout << "PRUNED" << endl;
     } else {
       p.do_move(candidate_moves[i].pos, p.is_red);
+      //cout << "pre calculating" << endl;
+      //Eval_Move e = evaluate_shortestpath(p, evaluated_positions);
+      //cout << e.pos << " " << e.evaluation << endl;
       candidate_moves[i].evaluation = evaluate_shortestpath(p, evaluated_positions);
+      //cout << "pre undid" << endl;
       p.undo_move(candidate_moves[i].pos, p.is_red);
+      //cout << "pre calculated" << endl;
     }
 
 	}
@@ -448,9 +628,9 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, short in
       return *max_element(begin(candidate_moves), end(candidate_moves));
     }
     sort(candidate_moves.begin(), candidate_moves.end(), greater<Eval_Move>());
-		short int best = MIN;
+		float best = MIN;
 
-		short int best_pos = 0;
+		short int best_pos = -1;
     if (p.num_empty > 0) {
       best_pos = candidate_moves[0].pos;
     }
@@ -484,7 +664,7 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, short in
       return *min_element(begin(candidate_moves), end(candidate_moves));
     }
     sort(candidate_moves.begin(), candidate_moves.end());
-		short int best = MAX;
+		float best = MAX;
     short int best_pos = -1;
     if (p.num_empty > 0) {
       best_pos = candidate_moves[0].pos;
@@ -523,23 +703,46 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, short in
 
 //Test main
 int main2(int argc, char *argv[]) {
-  vector<Eval_Move> e = vector<Eval_Move>({Eval_Move(0, 4), Eval_Move(1, 3), Eval_Move(2, 8)});
-  sort(e.begin(), e.end(), greater<Eval_Move>());
-  for (Eval_Move f : e) {
-    cout << f.pos << " " << f.evaluation << endl;
-  }
-  cout << endl;
 
-  Position p(4, true);
-  unordered_map< Position, pair<short int, short int> , PositionHasher > evaluated_positions;
-  p.do_move(9, true);
+  Position p(15, true);
+  // unordered_map< Position, pair<short int, float> , PositionHasher > evaluated_positions;
+  // float f = evaluate_shortestpath(p, evaluated_positions);
+  // cout << f << endl;
+  // bool red = true;
+  // for (int i = 1; i < argc; ++i) {
+  //       if (strcmp(argv[i],"S") == 0) {
+  //         red = false;
+  //         continue;
+  //       }
+  //       p.do_move(atoi(argv[i]), red);
+  // }
+  // cout << p << endl;
+  //
+  //
+  // f = evaluate_shortestpath(p, evaluated_positions);
+  // cout << f << endl;
+
+  p.do_move(p.input_to_move("L11"), true);
+  p.do_move(p.input_to_move("M12"), true);
+  p.do_move(p.input_to_move("L12"), false);
   cout << p << endl;
-  Eval_Move val = minimax(0, 5, p, MIN, MAX, evaluated_positions);
-  p.do_move(val.pos, false);
-  cout << p << endl;
-  for (pair<Position, pair<short int, short int>> element : evaluated_positions) {
-      cout << element.first << " :: " << element.second.first << " :: " << element.second.second << std::endl;
+  string move;
+  while(true) {
+    cin >> move;
+    int m = p.input_to_move(move);
+    cout << m << endl;
+    string red_n = getNeighbors(true, m, p).to_string<char,std::string::traits_type,std::string::allocator_type>();
+    string blue_n = getNeighbors(false, m, p).to_string<char,std::string::traits_type,std::string::allocator_type>();
+    bool first_row = in_first_row(m, p);
+    bool first_col = in_first_col(m, p);
+    bool last_row = in_last_row(m, p);
+    bool last_col = in_last_col(m, p);
+    cout << "first_row: " << first_row << " first_col: " << first_col << " last row: " << last_row << " last_col " << last_col << endl;
+    cout << red_n << endl;
+    cout << blue_n << endl;
   }
+
+
 }
 
 
@@ -582,7 +785,7 @@ if (board_size >= 7) {
 
 Position p(board_size, true);
 
-unordered_map< Position, pair<short int, short int> , PositionHasher > evaluated_positions; //Position to quality, evaluation
+unordered_map< Position, pair<short int, float> , PositionHasher > evaluated_positions; //Position to quality, evaluation
 
 Eval_Move val;
 
@@ -600,14 +803,14 @@ if (ai_red) {
       i += 2;
     }
     // cout << p.move_to_output(val.pos) << endl;
-    // if (debug) {
+    // // if (DEBUG) {
     //   cout << val.evaluation << " Depth: " << i << endl;
     // }
     // p.do_move(val.pos, true);
     int move = p.size/2 + p.size*(p.size/2) - (p.size+1)%2; //For some reason doesn't help
     cout << p.move_to_output(move) << endl;
     p.do_move(move, true);
-    // if (debug) cout << p;
+    if (debug) cout << p;
 }
 
 
@@ -616,7 +819,7 @@ while(p.num_empty > 0) {
   cin >> player_move;
   //cout << "Played: " << player_move << " = " << p.input_to_move(player_move) << endl;
   p.do_move(p.input_to_move(player_move), !ai_red);
-  if (debug) cout << p;
+  // if (DEBUG) cout << p;
   int i = ai_red;
   t1 = chrono::high_resolution_clock::now();
   t2 = chrono::high_resolution_clock::now();
@@ -635,9 +838,9 @@ while(p.num_empty > 0) {
 
   cout << p.move_to_output(val.pos) << endl;
   p.do_move(val.pos, ai_red);
-  if (debug) {
-    cout << val.evaluation << " Depth: " << i << endl;
-    cout << p;
+   if (debug) {
+     cout << val.evaluation << " Depth: " << i << endl;
+     cout << p;
   }
 }
 
