@@ -28,6 +28,8 @@ const bool DEBUG = true;
 
 const float MULTI_PATH_WEIGHT = 0.5;
 
+const int time_cap = 29700;
+
 const unordered_set<Neighbor_State, NeighborHasher> pruned_dead( {Neighbor_State(bitset<6>(0b111000), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b011100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b001110), bitset<6>(0b100000)),
 Neighbor_State(bitset<6>(0b000111), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b100011), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110001), bitset<6>(0b000100)),
 
@@ -56,30 +58,60 @@ Neighbor_State(bitset<6>(0b100000), bitset<6>(0b001010)), Neighbor_State(bitset<
 Neighbor_State(bitset<6>(0b000100), bitset<6>(0b111000)), Neighbor_State(bitset<6>(0b000001), bitset<6>(0b111000)),
 Neighbor_State(bitset<6>(0b000101), bitset<6>(0b111000)),
 
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b101100)), Neighbor_State(bitset<6>(0b000010), bitset<6>(0b101100)),
+Neighbor_State(bitset<6>(0b000001), bitset<6>(0b101100)), Neighbor_State(bitset<6>(0b000011), bitset<6>(0b101100)),
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b110100)), Neighbor_State(bitset<6>(0b000010), bitset<6>(0b110100)),
+Neighbor_State(bitset<6>(0b000001), bitset<6>(0b110100)), Neighbor_State(bitset<6>(0b000011), bitset<6>(0b110100)),
+
 Neighbor_State(bitset<6>(0b011000), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b011000), bitset<6>(0b000001)),
 Neighbor_State(bitset<6>(0b010000), bitset<6>(0b000101)), Neighbor_State(bitset<6>(0b000000), bitset<6>(0b011100)),
 Neighbor_State(bitset<6>(0b000010), bitset<6>(0b011100)), Neighbor_State(bitset<6>(0b100000), bitset<6>(0b011100)),
 Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011100)),
+
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b010110)), Neighbor_State(bitset<6>(0b000001), bitset<6>(0b010110)),
+Neighbor_State(bitset<6>(0b100000), bitset<6>(0b010110)), Neighbor_State(bitset<6>(0b100001), bitset<6>(0b010110)),
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b011010)), Neighbor_State(bitset<6>(0b000001), bitset<6>(0b011010)),
+Neighbor_State(bitset<6>(0b100000), bitset<6>(0b011010)), Neighbor_State(bitset<6>(0b100001), bitset<6>(0b011010)),
 
 Neighbor_State(bitset<6>(0b001100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b001100), bitset<6>(0b100000)),
 Neighbor_State(bitset<6>(0b001000), bitset<6>(0b100010)), Neighbor_State(bitset<6>(0b000000), bitset<6>(0b001110)),
 Neighbor_State(bitset<6>(0b000001), bitset<6>(0b001110)), Neighbor_State(bitset<6>(0b010000), bitset<6>(0b001110)),
 Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001110)),
 
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b001011)), Neighbor_State(bitset<6>(0b100000), bitset<6>(0b001011)),
+Neighbor_State(bitset<6>(0b010000), bitset<6>(0b001011)), Neighbor_State(bitset<6>(0b110000), bitset<6>(0b001011)),
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b001101)), Neighbor_State(bitset<6>(0b100000), bitset<6>(0b001101)),
+Neighbor_State(bitset<6>(0b010000), bitset<6>(0b001101)), Neighbor_State(bitset<6>(0b110000), bitset<6>(0b001101)),
+
 Neighbor_State(bitset<6>(0b000110), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b000110), bitset<6>(0b010000)),
 Neighbor_State(bitset<6>(0b000100), bitset<6>(0b010001)), Neighbor_State(bitset<6>(0b000000), bitset<6>(0b000111)),
 Neighbor_State(bitset<6>(0b100000), bitset<6>(0b000111)), Neighbor_State(bitset<6>(0b001000), bitset<6>(0b000111)),
 Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000111)),
+
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b100101)), Neighbor_State(bitset<6>(0b010000), bitset<6>(0b100101)),
+Neighbor_State(bitset<6>(0b001000), bitset<6>(0b100101)), Neighbor_State(bitset<6>(0b011000), bitset<6>(0b100101)),
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b100110)), Neighbor_State(bitset<6>(0b010000), bitset<6>(0b100110)),
+Neighbor_State(bitset<6>(0b001000), bitset<6>(0b100110)), Neighbor_State(bitset<6>(0b011000), bitset<6>(0b100110)),
 
 Neighbor_State(bitset<6>(0b000011), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b000011), bitset<6>(0b001000)),
 Neighbor_State(bitset<6>(0b000010), bitset<6>(0b101000)), Neighbor_State(bitset<6>(0b000000), bitset<6>(0b100011)),
 Neighbor_State(bitset<6>(0b010000), bitset<6>(0b100011)), Neighbor_State(bitset<6>(0b000100), bitset<6>(0b100011)),
 Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100011)),
 
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b110010)), Neighbor_State(bitset<6>(0b001000), bitset<6>(0b110010)),
+Neighbor_State(bitset<6>(0b000100), bitset<6>(0b110010)), Neighbor_State(bitset<6>(0b001100), bitset<6>(0b110010)),
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b010011)), Neighbor_State(bitset<6>(0b001000), bitset<6>(0b010011)),
+Neighbor_State(bitset<6>(0b000100), bitset<6>(0b010011)), Neighbor_State(bitset<6>(0b001100), bitset<6>(0b010011)),
+
 Neighbor_State(bitset<6>(0b100001), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b100001), bitset<6>(0b000100)),
 Neighbor_State(bitset<6>(0b000001), bitset<6>(0b010100)), Neighbor_State(bitset<6>(0b000000), bitset<6>(0b110001)),
 Neighbor_State(bitset<6>(0b001000), bitset<6>(0b110001)), Neighbor_State(bitset<6>(0b000010), bitset<6>(0b110001)),
-Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001))
+Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001)),
+
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b011001)), Neighbor_State(bitset<6>(0b000100), bitset<6>(0b011001)),
+Neighbor_State(bitset<6>(0b000010), bitset<6>(0b011001)), Neighbor_State(bitset<6>(0b000110), bitset<6>(0b011001)),
+Neighbor_State(bitset<6>(0b000000), bitset<6>(0b101001)), Neighbor_State(bitset<6>(0b000100), bitset<6>(0b101001)),
+Neighbor_State(bitset<6>(0b000010), bitset<6>(0b101001)), Neighbor_State(bitset<6>(0b000110), bitset<6>(0b101001))
 
 });
 
@@ -542,6 +574,9 @@ while(!to_check.empty()) {
 ////if (DEBUG) cout << "eval shortest path4"  << endl;
 //cout << "Getting output" << endl;
 float shortest_path_value = (log(num_red_shortest_paths) - log(num_blue_shortest_paths));
+
+
+//float points = blue_shortest_path - red_shortest_path + 2.01*sigmoidP(shortest_path_value);
 float points = blue_shortest_path - red_shortest_path + sigmoidP(shortest_path_value);
 ////if (DEBUG) cout << points << endl;
 //cout << "Got output" << endl;
@@ -605,7 +640,7 @@ bool in_pruned_states(int pos, const Position& p) {
 }
 
 
-Eval_Move minimax(short int depth, short int target_depth, Position& p, float alpha, float beta,unordered_map< Position, pair<short int, float>, PositionHasher >& evaluated_positions) {
+Eval_Move minimax(short int depth, short int target_depth, Position& p, float alpha, float beta,unordered_map< Position, pair<short int, float>, PositionHasher >& evaluated_positions, chrono::time_point<std::chrono::high_resolution_clock>& t1, bool& time_remaining) {
   if (p.num_empty == 0) {
     //cout << "Empty" << endl;
     return Eval_Move(0, evaluate_shortestpath(p, evaluated_positions));
@@ -644,12 +679,17 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, float al
     }
 
 		for (short int i = 0; i < p.num_empty; ++i) {
+      //cout << chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1).count() << endl;
+      if (chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1).count() > time_cap) {
+        time_remaining = false;
+        break;
+      }
       if (in_pruned_states(candidate_moves[i].pos, p)) {
         //cout << "PRUNED" << endl;
         continue;
       }
 			p.do_move(candidate_moves[i].pos, p.is_red);
-			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, p, alpha, beta, evaluated_positions);
+			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, p, alpha, beta, evaluated_positions, t1, time_remaining);
 			p.undo_move(candidate_moves[i].pos, p.is_red);
 			if (opponent_eval_move.evaluation > best) {
 				best = opponent_eval_move.evaluation;
@@ -680,12 +720,17 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, float al
 
 
 		for (short int i = 0; i < p.num_empty; ++i) {
+      //cout << chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1).count() << endl;
+      if (chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - t1).count() > time_cap) {
+        time_remaining = false;
+        break;
+      }
       if (in_pruned_states(candidate_moves[i].pos, p)) {
         //cout << "PRUNED" << endl;
         continue;
       }
 			p.do_move(candidate_moves[i].pos, p.is_red);
-			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, p, alpha, beta, evaluated_positions);
+			Eval_Move opponent_eval_move = minimax(depth + 1, target_depth, p, alpha, beta, evaluated_positions, t1, time_remaining);
 			p.undo_move(candidate_moves[i].pos, p.is_red);
 			if (opponent_eval_move.evaluation < best) {
 				best = opponent_eval_move.evaluation;
@@ -729,6 +774,15 @@ int main2(int argc, char *argv[]) {
 
   f = evaluate_shortestpath(p, evaluated_positions);
   cout << f << endl;
+
+  cout << "DEAD" << endl;
+  for (Neighbor_State n : pruned_dead) {
+    cout << n << endl;
+  }
+  cout << "VULNERABLE" << endl;
+  for (Neighbor_State n : pruned_vulnerable) {
+    cout << n << endl;
+  }
 
   // p.do_move(p.input_to_move("L11"), true);
   // p.do_move(p.input_to_move("M12"), true);
@@ -792,7 +846,7 @@ if (ai_color == "BLUE") {
 //   max_depth = 6;
 // }
 
-short int time_cap = 400 - 4*board_size;
+
 Position p(board_size, true);
 
 unordered_map< Position, pair<short int, float> , PositionHasher > evaluated_positions; //Position to quality, evaluation
@@ -803,14 +857,13 @@ Eval_Move val;
 
 
 auto t1 = chrono::high_resolution_clock::now();
-auto t2 = chrono::high_resolution_clock::now();
+bool time_remaining = true;
 if (ai_red) {
     int i = 1;
-    while (chrono::duration_cast<chrono::milliseconds>(t2-t1).count() < time_cap && i < max_depth) {
-      t1 = chrono::high_resolution_clock::now();
-      val = minimax(0, i, p, MIN, MAX, evaluated_positions);
-      t2 = chrono::high_resolution_clock::now();
-      i += 1;
+
+    while (time_remaining && i < max_depth) {
+      val = minimax(0, i, p, MIN, MAX, evaluated_positions, t1, time_remaining);
+      i += 2;
     }
     // cout << p.move_to_output(val.pos) << endl;
     // //if (DEBUG) {
@@ -831,15 +884,13 @@ while(p.num_empty > 0) {
   p.do_move(p.input_to_move(player_move), !ai_red);
   //if (DEBUG) cout << p;
   int i = ai_red;
+
   t1 = chrono::high_resolution_clock::now();
-  t2 = chrono::high_resolution_clock::now();
-  while (chrono::duration_cast<chrono::milliseconds>(t2-t1).count() < time_cap && i < max_depth) {
-    //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
-    t1 = chrono::high_resolution_clock::now();
-    val = minimax(0, i, p, MIN, MAX, evaluated_positions);
-    t2 = chrono::high_resolution_clock::now();
-    chrono::duration_cast<chrono::milliseconds>(t2-t1).count();
-    i += 1;
+  time_remaining = true;
+  while (time_remaining && i < max_depth) {
+    val = minimax(0, i, p, MIN, MAX, evaluated_positions, t1, time_remaining);
+
+    i += 2;
   }
   //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
   //cout <<  val.pos << " " << p.move_to_output(val.pos) << " " << val.evaluation << endl;
