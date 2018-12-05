@@ -26,7 +26,7 @@ const int MIN = -100;
 const bool DEBUG = true;
 
 //const int time_cap = 29900;
-const int time_cap = 29905;
+const int time_cap = 29900;
 
 const unordered_set<Neighbor_State, NeighborHasher> pruned_dead( {Neighbor_State(bitset<6>(0b111000), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b011100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b001110), bitset<6>(0b100000)),
 Neighbor_State(bitset<6>(0b000111), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b100011), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110001), bitset<6>(0b000100)),
@@ -358,10 +358,10 @@ float evaluate_shortestpath(const Position& p, unordered_map< Position, pair<sho
 }
 ///BLUE
 
-// cout << "Red Reached: " << endl;
-// for (auto p : reached) {
-//   cout << p.first << " : " << p.second.first << " "  << p.second.second << endl;
-// }
+cout << "Red Reached: " << endl;
+for (auto p : reached) {
+  cout << p.first << " : " << p.second.first << " "  << p.second.second << endl;
+}
 
 //if (DEBUG) cout << "NOW BLUE "  << endl;
 reached.clear();
@@ -565,11 +565,11 @@ float points = blue_shortest_path - red_shortest_path + sigmoidP(num_red_shortes
 ////if (DEBUG) cout << points << endl;
 //cout << "Got output" << endl;
 evaluated_positions.insert(make_pair(p, make_pair(0, points)));
-// cout << "Blue reached" << endl;
-// for (auto p : reached) {
-//   cout << p.first << " : " << p.second.first << " "  << p.second.second << endl;
-// }
-//cout << "Red Shortest:" << red_shortest_path << " Red num: " << num_red_shortest_paths << " Blue Shortest:" << blue_shortest_path << " Blue num: " << num_blue_shortest_paths << endl;
+cout << "Blue reached" << endl;
+for (auto p : reached) {
+  cout << p.first << " : " << p.second.first << " "  << p.second.second << endl;
+}
+cout << "Red Shortest:" << red_shortest_path << " Red num: " << num_red_shortest_paths << " Blue Shortest:" << blue_shortest_path << " Blue num: " << num_blue_shortest_paths << endl;
 
 return points;
 }
@@ -739,12 +739,14 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, float al
 
 
 //Test main
-int main2(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 
-  Position p(5, true);
+  Position p(3, true);
   unordered_map< Position, pair<short int, float> , PositionHasher > evaluated_positions;
   float f = evaluate_shortestpath(p, evaluated_positions);
   cout << f << endl;
+  cout << p << endl;
+
   bool red = true;
   for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i],"S") == 0) {
@@ -753,34 +755,35 @@ int main2(int argc, char *argv[]) {
         }
         p.do_move(atoi(argv[i]), red);
   }
-  p.do_move(0, true);
-  cout << p << endl;
+  //p.do_move(0, true);
+
 
 
   f = evaluate_shortestpath(p, evaluated_positions);
   cout << f << endl;
+  cout << p << endl;
 
-  auto t1 = chrono::high_resolution_clock::now();
-  int i = 1;
-  Eval_Move val;
-  bool time_remaining = true;
-  while (time_remaining && i < 10) {
-    val = minimax(0, i, p, MIN, MAX, evaluated_positions, t1, time_remaining);
-    cout << p.move_to_output(val.pos) << endl;
-    i += 2;
-  }
+  // auto t1 = chrono::high_resolution_clock::now();
+  // int i = 1;
+  // Eval_Move val;
+  // bool time_remaining = true;
+  // while (time_remaining && i < 10) {
+  //   val = minimax(0, i, p, MIN, MAX, evaluated_positions, t1, time_remaining);
+  //   cout << p.move_to_output(val.pos) << endl;
+  //   i += 2;
+  // }
   //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
   //cout <<  val.pos << " " << p.move_to_output(val.pos) << " " << val.evaluation << endl;
 
 
 
-  cout << p.move_to_output(val.pos) << endl;
-  p.do_move(val.pos, p.is_red);
-  cout << val.evaluation << " Depth: " << i << endl;
-  cout << p;
-
-  f = evaluate_shortestpath(p, evaluated_positions);
-  cout << f << endl;
+  // cout << p.move_to_output(val.pos) << endl;
+  // p.do_move(val.pos, p.is_red);
+  // cout << val.evaluation << " Depth: " << i << endl;
+  // cout << p;
+  //
+  // f = evaluate_shortestpath(p, evaluated_positions);
+  // cout << f << endl;
 
   // cout << "DEAD" << endl;
   // for (Neighbor_State n : pruned_dead) {
@@ -816,7 +819,7 @@ int main2(int argc, char *argv[]) {
 
 
 // Driver Code
-int main(int argc, char *argv[])  {
+int main2(int argc, char *argv[])  {
   string ai_color = "RED";
   short int board_size = 7;
   short int max_depth = 15;

@@ -170,28 +170,43 @@ float evaluate_shortestpath(const Position& p, unordered_map< Position, pair<sho
   int num_blue_shortest_paths = 0;
   unordered_map<short int, pair<short int, int> > reached; //Reached position, shortest path, number of paths
 
-  priority_queue< pair<short int, short int>, vector< pair<short int, short int> >, greater< pair<short int, short int> > > to_check;
-  //deque < pair<short int, short int> > to_check;
+  //priority_queue< pair<short int, short int>, vector< pair<short int, short int> >, greater< pair<short int, short int> > > to_check;
+  deque < pair<short int, short int> > to_check_uncolored;
+  deque < pair<short int, short int> > to_check_colored;
 
 
   for (short int i = 0; i < p.size; ++i) {
     if (p.tiles[0][i]) {
       reached.insert(make_pair(i, make_pair(0, 1)));
-      to_check.push( make_pair(0, i) );
+      to_check_colored.push_front( make_pair(0, i) );
     } else if (!p.tiles[1][i]) {
       reached.insert(make_pair(i, make_pair(1, 1)));
-      to_check.push( make_pair(1, i) );
+      to_check_uncolored.push_back( make_pair(1, i) );
     }
   }
   //if (DEBUG) cout << "eval shortest path3 "  << endl;
   bool end_found_flag = false;
   vector<short int> shortest_nodes;
 
-  while(!to_check.empty()) {
-    pair<short int, short int> c = to_check.top();
-    to_check.pop();
+  while(!to_check_uncolored.empty() || !to_check_colored.empty()) {
+    pair<short int, short int> c;
+    if (to_check_colored.empty()) {
+      c = to_check_uncolored.front();
+      to_check_uncolored.pop_front();
+    } else if (to_check_uncolored.empty()) {
+      c = to_check_colored.front();
+      to_check_colored.pop_front();
+    } else if (to_check_colored.front().first < to_check_uncolored.front().first) {
+      c = to_check_colored.front();
+      to_check_colored.pop_front();
+    } else {
+      c = to_check_uncolored.front();
+      to_check_uncolored.pop_front();
+    }
+
     const auto current = reached.at(c.second);
-    if(end_found_flag && red_shortest_path != c.first) {
+    //cout << "test " << red_shortest_path << " " << c.first << " " << c.second << endl;
+    if(end_found_flag && red_shortest_path < c.first) {
       for (short int s : shortest_nodes) {
         num_red_shortest_paths += reached.at(s).second;
       }
@@ -229,10 +244,10 @@ float evaluate_shortestpath(const Position& p, unordered_map< Position, pair<sho
       const auto& iter = reached.find(i);
       if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
-          to_check.push( make_pair(c.first, i));
+          to_check_colored.push_front( make_pair(c.first, i));
           reached.insert(make_pair(i, make_pair(c.first, current.second)));
         } else {
-          to_check.push( make_pair(c.first + 1, i));
+          to_check_uncolored.push_back( make_pair(c.first + 1, i));
           reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
         }
       } else if (iter != reached.end() && !p.tiles[1][i]) {
@@ -251,10 +266,10 @@ float evaluate_shortestpath(const Position& p, unordered_map< Position, pair<sho
       const auto& iter = reached.find(i);
       if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
-          to_check.push( make_pair(c.first, i));
+          to_check_colored.push_front( make_pair(c.first, i));
           reached.insert(make_pair(i, make_pair(c.first, current.second)));
         } else {
-          to_check.push( make_pair(c.first + 1, i));
+          to_check_uncolored.push_back( make_pair(c.first + 1, i));
           reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
         }
       } else if (iter != reached.end() && !p.tiles[1][i]) {
@@ -273,10 +288,10 @@ float evaluate_shortestpath(const Position& p, unordered_map< Position, pair<sho
       const auto& iter = reached.find(i);
       if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
-          to_check.push( make_pair(c.first, i));
+          to_check_colored.push_front( make_pair(c.first, i));
           reached.insert(make_pair(i, make_pair(c.first, current.second)));
         } else {
-          to_check.push( make_pair(c.first + 1, i));
+          to_check_uncolored.push_back( make_pair(c.first + 1, i));
           reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
         }
       } else if (iter != reached.end() && !p.tiles[1][i]) {
@@ -295,10 +310,10 @@ float evaluate_shortestpath(const Position& p, unordered_map< Position, pair<sho
       const auto& iter = reached.find(i);
       if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
-          to_check.push( make_pair(c.first, i));
+          to_check_colored.push_front( make_pair(c.first, i));
           reached.insert(make_pair(i, make_pair(c.first, current.second)));
         } else {
-          to_check.push( make_pair(c.first + 1, i));
+          to_check_uncolored.push_back( make_pair(c.first + 1, i));
           reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
         }
       } else if (iter != reached.end() && !p.tiles[1][i]) {
@@ -317,10 +332,10 @@ float evaluate_shortestpath(const Position& p, unordered_map< Position, pair<sho
       const auto& iter = reached.find(i);
       if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
-          to_check.push( make_pair(c.first, i));
+          to_check_colored.push_front( make_pair(c.first, i));
           reached.insert(make_pair(i, make_pair(c.first, current.second)));
         } else {
-          to_check.push( make_pair(c.first + 1, i));
+          to_check_uncolored.push_back( make_pair(c.first + 1, i));
           reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
         }
       } else if (iter != reached.end() && !p.tiles[1][i]) {
@@ -339,10 +354,10 @@ float evaluate_shortestpath(const Position& p, unordered_map< Position, pair<sho
       const auto& iter = reached.find(i);
       if (!p.tiles[1][i] && iter == reached.end()) {
         if (p.tiles[0][i]) {
-          to_check.push( make_pair(c.first, i));
+          to_check_colored.push_front( make_pair(c.first, i));
           reached.insert(make_pair(i, make_pair(c.first, current.second)));
         } else {
-          to_check.push( make_pair(c.first + 1, i));
+          to_check_uncolored.push_back( make_pair(c.first + 1, i));
           reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
         }
       } else if (iter != reached.end() && !p.tiles[1][i]) {
@@ -365,24 +380,39 @@ float evaluate_shortestpath(const Position& p, unordered_map< Position, pair<sho
 
 //if (DEBUG) cout << "NOW BLUE "  << endl;
 reached.clear();
-to_check = priority_queue< pair<short int, short int>, vector< pair<short int, short int> >, greater< pair<short int, short int> > >();
+to_check_colored.clear();
+to_check_uncolored.clear();
 shortest_nodes.clear();
 short int coord = 0;
 for (short int i = 0; i < p.size; ++i) {
   if (p.tiles[1][coord]) {
     reached.insert(make_pair(coord, make_pair(0, 1)));
-    to_check.push( make_pair(0, coord));
+    to_check_colored.push_front( make_pair(0, coord));
   } else if (!p.tiles[0][coord]) {
     reached.insert(make_pair(coord, make_pair(1, 1)));
-    to_check.push( make_pair(1, coord) );
+    to_check_uncolored.push_back( make_pair(1, coord) );
   }
   coord += p.size;
 }
 //if (DEBUG) cout << "2eval shortest path3 "  << endl;
 end_found_flag = false;
-while(!to_check.empty()) {
-  pair<short int, short int> c = to_check.top();
-  to_check.pop();
+while(!to_check_uncolored.empty() || !to_check_colored.empty()) {
+  pair<short int, short int> c;
+  if (to_check_colored.empty()) {
+    c = to_check_uncolored.front();
+    to_check_uncolored.pop_front();
+  } else if (to_check_uncolored.empty()) {
+    c = to_check_colored.front();
+    to_check_colored.pop_front();
+  } else if (to_check_colored.front().first < to_check_uncolored.front().first) {
+    c = to_check_colored.front();
+    to_check_colored.pop_front();
+  } else {
+    c = to_check_uncolored.front();
+    to_check_uncolored.pop_front();
+  }
+
+
   const auto current = reached.at(c.second);
   if(end_found_flag && blue_shortest_path != c.first) {
     for (short int s : shortest_nodes) {
@@ -421,10 +451,10 @@ while(!to_check.empty()) {
     const auto& iter = reached.find(i);
     if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
-        to_check.push( make_pair(c.first, i));
+        to_check_colored.push_front( make_pair(c.first, i));
         reached.insert(make_pair(i, make_pair(c.first, current.second)));
       } else {
-        to_check.push( make_pair(c.first + 1, i));
+        to_check_uncolored.push_back( make_pair(c.first + 1, i));
         reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
       }
     } else if (iter != reached.end() && !p.tiles[0][i]) {
@@ -443,10 +473,10 @@ while(!to_check.empty()) {
     const auto& iter = reached.find(i);
     if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
-        to_check.push( make_pair(c.first, i));
+        to_check_colored.push_front( make_pair(c.first, i));
         reached.insert(make_pair(i, make_pair(c.first, current.second)));
       } else {
-        to_check.push( make_pair(c.first + 1, i));
+        to_check_uncolored.push_back( make_pair(c.first + 1, i));
         reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
       }
     } else if (iter != reached.end() && !p.tiles[0][i]) {
@@ -465,10 +495,10 @@ while(!to_check.empty()) {
     const auto& iter = reached.find(i);
     if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
-        to_check.push( make_pair(c.first, i));
+        to_check_colored.push_front( make_pair(c.first, i));
         reached.insert(make_pair(i, make_pair(c.first, current.second)));
       } else {
-        to_check.push( make_pair(c.first + 1, i));
+        to_check_uncolored.push_back( make_pair(c.first + 1, i));
         reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
       }
     } else if (iter != reached.end() && !p.tiles[0][i]) {
@@ -487,10 +517,10 @@ while(!to_check.empty()) {
     const auto& iter = reached.find(i);
     if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
-        to_check.push( make_pair(c.first, i));
+        to_check_colored.push_front( make_pair(c.first, i));
         reached.insert(make_pair(i, make_pair(c.first, current.second)));
       } else {
-        to_check.push( make_pair(c.first + 1, i));
+        to_check_uncolored.push_back( make_pair(c.first + 1, i));
         reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
       }
     } else if (iter != reached.end() && !p.tiles[0][i]) {
@@ -509,10 +539,10 @@ while(!to_check.empty()) {
     const auto& iter = reached.find(i);
     if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
-        to_check.push( make_pair(c.first, i));
+        to_check_colored.push_front( make_pair(c.first, i));
         reached.insert(make_pair(i, make_pair(c.first, current.second)));
       } else {
-        to_check.push( make_pair(c.first + 1, i));
+        to_check_uncolored.push_back( make_pair(c.first + 1, i));
         reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
       }
     } else if (iter != reached.end() && !p.tiles[0][i]) {
@@ -531,10 +561,10 @@ while(!to_check.empty()) {
     const auto& iter = reached.find(i);
     if (!p.tiles[0][i] && iter == reached.end()) {
       if (p.tiles[1][i]) {
-        to_check.push( make_pair(c.first, i));
+        to_check_colored.push_front( make_pair(c.first, i));
         reached.insert(make_pair(i, make_pair(c.first, current.second)));
       } else {
-        to_check.push( make_pair(c.first + 1, i));
+        to_check_uncolored.push_back( make_pair(c.first + 1, i));
         reached.insert(make_pair(i, make_pair(c.first + 1, current.second)));
       }
     } else if (iter != reached.end() && !p.tiles[0][i]) {
@@ -741,10 +771,12 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, float al
 //Test main
 int main2(int argc, char *argv[]) {
 
-  Position p(5, true);
+  Position p(3, true);
   unordered_map< Position, pair<short int, float> , PositionHasher > evaluated_positions;
   float f = evaluate_shortestpath(p, evaluated_positions);
   cout << f << endl;
+  cout << p << endl;
+
   bool red = true;
   for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i],"S") == 0) {
@@ -753,34 +785,35 @@ int main2(int argc, char *argv[]) {
         }
         p.do_move(atoi(argv[i]), red);
   }
-  p.do_move(0, true);
-  cout << p << endl;
+  //p.do_move(0, true);
+
 
 
   f = evaluate_shortestpath(p, evaluated_positions);
   cout << f << endl;
+  cout << p << endl;
 
-  auto t1 = chrono::high_resolution_clock::now();
-  int i = 1;
-  Eval_Move val;
-  bool time_remaining = true;
-  while (time_remaining && i < 10) {
-    val = minimax(0, i, p, MIN, MAX, evaluated_positions, t1, time_remaining);
-    cout << p.move_to_output(val.pos) << endl;
-    i += 1;
-  }
+  // auto t1 = chrono::high_resolution_clock::now();
+  // int i = 1;
+  // Eval_Move val;
+  // bool time_remaining = true;
+  // while (time_remaining && i < 10) {
+  //   val = minimax(0, i, p, MIN, MAX, evaluated_positions, t1, time_remaining);
+  //   cout << p.move_to_output(val.pos) << endl;
+  //   i += 2;
+  // }
   //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
   //cout <<  val.pos << " " << p.move_to_output(val.pos) << " " << val.evaluation << endl;
 
 
 
-  cout << p.move_to_output(val.pos) << endl;
-  p.do_move(val.pos, p.is_red);
-  cout << val.evaluation << " Depth: " << i << endl;
-  cout << p;
-
-  f = evaluate_shortestpath(p, evaluated_positions);
-  cout << f << endl;
+  // cout << p.move_to_output(val.pos) << endl;
+  // p.do_move(val.pos, p.is_red);
+  // cout << val.evaluation << " Depth: " << i << endl;
+  // cout << p;
+  //
+  // f = evaluate_shortestpath(p, evaluated_positions);
+  // cout << f << endl;
 
   // cout << "DEAD" << endl;
   // for (Neighbor_State n : pruned_dead) {
@@ -871,9 +904,9 @@ if (ai_red) {
     while (time_remaining && i < max_depth) {
       val = minimax(0, i, p, MIN, MAX, evaluated_positions, t1, time_remaining);
       if (debug) {
-        cout << p.move_to_output(val.pos) <<" " << val.evaluation << " Depth: " << i << endl;
+        cout << p.move_to_output(val.pos) << " " << val.evaluation << " Depth: " << i << endl;
      }
-      i += 1;
+      i += 2;
     }
     // cout << p.move_to_output(val.pos) << endl;
     // //if (DEBUG) {
@@ -900,9 +933,9 @@ while(p.num_empty > 0) {
   while (time_remaining && i < max_depth) {
     val = minimax(0, i, p, MIN, MAX, evaluated_positions, t1, time_remaining);
     if (debug) {
-      cout << p.move_to_output(val.pos) << val.evaluation << " Depth: " << i << endl;
+      cout << p.move_to_output(val.pos) << " " << val.evaluation << " Depth: " << i << endl;
    }
-    i += 1;
+    i += 2;
   }
   //cout << i << " " << chrono::duration_cast<chrono::milliseconds>(t2-t1).count() << endl;
   //cout <<  val.pos << " " << p.move_to_output(val.pos) << " " << val.evaluation << endl;
