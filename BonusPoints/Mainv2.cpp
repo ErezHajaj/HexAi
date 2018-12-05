@@ -26,7 +26,7 @@ const int MIN = -100;
 const bool DEBUG = true;
 
 //const int time_cap = 29900;
-const int time_cap = 29900;
+const int time_cap = 1000;
 
 const unordered_set<Neighbor_State, NeighborHasher> pruned_dead( {Neighbor_State(bitset<6>(0b111000), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b011100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b001110), bitset<6>(0b100000)),
 Neighbor_State(bitset<6>(0b000111), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b100011), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110001), bitset<6>(0b000100)),
@@ -113,7 +113,19 @@ Neighbor_State(bitset<6>(0b000010), bitset<6>(0b101001)), Neighbor_State(bitset<
 
 });
 
+const unordered_set<Neighbor_State, NeighborHasher> good_states( {
+Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000000)), // add variants
 
+Neighbor_State(bitset<6>(0b010100), bitset<6>(0b000000)), // add variants
+
+Neighbor_State(bitset<6>(0b001010), bitset<6>(0b000000)), // add variants
+
+Neighbor_State(bitset<6>(0b000101), bitset<6>(0b000000)), // add variants
+
+Neighbor_State(bitset<6>(0b100010), bitset<6>(0b000000)), // add variants
+
+Neighbor_State(bitset<6>(0b010001), bitset<6>(0b000000)) // add variants
+});
 
 
 inline float sigmoidP(float x) {
@@ -674,6 +686,66 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, float al
       //Eval_Move e = evaluate_shortestpath(p, evaluated_positions);
       //cout << e.pos << " " << e.evaluation << endl;
       candidate_moves[i].evaluation = evaluate_shortestpath(p, evaluated_positions);
+      if (!(in_first_row(candidate_moves[i].pos, p) || in_first_col(candidate_moves[i].pos, p) || in_last_row(candidate_moves[i].pos, p) || in_first_col(candidate_moves[i].pos, p))) { //improve!!!!
+
+        bitset<6> empty_tiles(0b111111);
+        empty_tiles &= ~(getNeighbors(p.is_red, candidate_moves[i].pos, p));
+        empty_tiles &= ~(getNeighbors(!p.is_red, candidate_moves[i].pos, p));
+
+        if(empty_tiles[0]) {
+          bitset<6> red_state = getNeighbors(p.is_red, candidate_moves[i].pos - 1, p);
+          bitset<6> blue_state = getNeighbors(!p.is_red, candidate_moves[i].pos - 1, p);
+          Neighbor_State ns(red_state, blue_state);
+          if (good_states.find(ns) != good_states.end()) {
+            candidate_moves[i].evaluation += (2*p.is_red - 1)*10;
+          }
+        }
+        if(empty_tiles[1]) {
+          bitset<6> red_state = getNeighbors(p.is_red, candidate_moves[i].pos + p.size - 1, p);
+          bitset<6> blue_state = getNeighbors(!p.is_red, candidate_moves[i].pos + p.size - 1, p);
+          Neighbor_State ns(red_state, blue_state);
+          if (good_states.find(ns) != good_states.end()) {
+            candidate_moves[i].evaluation += (2*p.is_red - 1)*10;
+          }
+        }
+
+        if(empty_tiles[2]) {
+          bitset<6> red_state = getNeighbors(p.is_red, candidate_moves[i].pos + p.size, p);
+          bitset<6> blue_state = getNeighbors(!p.is_red, candidate_moves[i].pos + p.size, p);
+          Neighbor_State ns(red_state, blue_state);
+          if (good_states.find(ns) != good_states.end()) {
+            candidate_moves[i].evaluation += (2*p.is_red - 1)*10;
+          }
+        }
+
+        if(empty_tiles[3]) {
+          bitset<6> red_state = getNeighbors(p.is_red, candidate_moves[i].pos + 1, p);
+          bitset<6> blue_state = getNeighbors(!p.is_red, candidate_moves[i].pos + 1, p);
+          Neighbor_State ns(red_state, blue_state);
+          if (good_states.find(ns) != good_states.end()) {
+            candidate_moves[i].evaluation += (2*p.is_red - 1)*10;
+          }
+        }
+
+        if(empty_tiles[4]) {
+          bitset<6> red_state = getNeighbors(p.is_red, candidate_moves[i].pos - p.size + 1, p);
+          bitset<6> blue_state = getNeighbors(!p.is_red, candidate_moves[i].pos - p.size + 1, p);
+          Neighbor_State ns(red_state, blue_state);
+          if (good_states.find(ns) != good_states.end()) {
+            candidate_moves[i].evaluation += (2*p.is_red - 1)*10;
+          }
+        }
+
+        if(empty_tiles[5]) {
+          bitset<6> red_state = getNeighbors(p.is_red, candidate_moves[i].pos - p.size, p);
+          bitset<6> blue_state = getNeighbors(!p.is_red, candidate_moves[i].pos - p.size, p);
+          Neighbor_State ns(red_state, blue_state);
+          if (good_states.find(ns) != good_states.end()) {
+            candidate_moves[i].evaluation += (2*p.is_red - 1)*10;
+          }
+        }
+      }
+
       //cout << "pre undid" << endl;
       p.undo_move(candidate_moves[i].pos, p.is_red);
       //cout << "pre calculated" << endl;
