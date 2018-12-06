@@ -26,7 +26,8 @@ const int MIN = -100;
 const bool DEBUG = true;
 
 //const int time_cap = 29900;
-const int time_cap = 20000;
+//const int time_cap = 29850;
+const int time_cap = 29850;
 
 const unordered_set<Neighbor_State, NeighborHasher> pruned_dead( {Neighbor_State(bitset<6>(0b111000), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b011100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b001110), bitset<6>(0b100000)),
 Neighbor_State(bitset<6>(0b000111), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b100011), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110001), bitset<6>(0b000100)),
@@ -113,62 +114,10 @@ Neighbor_State(bitset<6>(0b000010), bitset<6>(0b101001)), Neighbor_State(bitset<
 
 });
 
-const unordered_set<Neighbor_State, NeighborHasher> good_states( {
-   Neighbor_State(bitset<6>(0b010001), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b011001), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b011101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b010011), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b011011), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b010111), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b011111), bitset<6>(0b000000)),
-   Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b010011), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b010011), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b010111), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b010111), bitset<6>(0b001000)),
-   Neighbor_State(bitset<6>(0b010001), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b011001), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b011001), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b010011), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b011011), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b010011), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b011011), bitset<6>(0b000100)),
-   Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b010011), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b010011), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b010011), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b010011), bitset<6>(0b001100)),
-   Neighbor_State(bitset<6>(0b010001), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b011001), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b011101), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b011001), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b011101), bitset<6>(0b000010)),
-   Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001010)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b001010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b001010)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001010)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b001010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b001010)),
-   Neighbor_State(bitset<6>(0b010001), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b011001), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b011001), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b011001), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b011001), bitset<6>(0b000110)),
-   Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001110)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001110)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001110)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001110)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001110)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001110)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001110)), Neighbor_State(bitset<6>(0b010001), bitset<6>(0b001110)),
 
-   Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101100), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101110), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101001), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101011), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101111), bitset<6>(0b000000)),
-   Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b101001), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b101001), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b101011), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b101011), bitset<6>(0b000100)),
-   Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b101100), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b101100), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b101001), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b101101), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b101001), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b101101), bitset<6>(0b000010)),
-   Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b101001), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b101001), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b101001), bitset<6>(0b000110)), Neighbor_State(bitset<6>(0b101001), bitset<6>(0b000110)),
-   Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b101100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b101110), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b101100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b101110), bitset<6>(0b000001)),
-   Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000101)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000101)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000101)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000101)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000101)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000101)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000101)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000101)),
-   Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b101100), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b101100), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b101100), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b101100), bitset<6>(0b000011)),
-   Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000111)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000111)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000111)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000111)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000111)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000111)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000111)), Neighbor_State(bitset<6>(0b101000), bitset<6>(0b000111)),
-
-   Neighbor_State(bitset<6>(0b010100), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b010110), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b010111), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b110100), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b110110), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b110101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b110111), bitset<6>(0b000000)),
-   Neighbor_State(bitset<6>(0b010100), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b110100), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b110100), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b110101), bitset<6>(0b000010)), Neighbor_State(bitset<6>(0b110101), bitset<6>(0b000010)),
-   Neighbor_State(bitset<6>(0b010100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b010110), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b010110), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b110100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b110110), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b110100), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b110110), bitset<6>(0b000001)),
-   Neighbor_State(bitset<6>(0b010100), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b110100), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b110100), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b110100), bitset<6>(0b000011)), Neighbor_State(bitset<6>(0b110100), bitset<6>(0b000011)),
-   Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b010110), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b010111), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b010110), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b010111), bitset<6>(0b100000)),
-   Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100010)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b100010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b100010)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100010)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b100010)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b100010)),
-   Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b010110), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b010110), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b010110), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b010110), bitset<6>(0b100001)),
-   Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100011)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100011)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100011)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100011)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100011)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100011)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100011)), Neighbor_State(bitset<6>(0b010100), bitset<6>(0b100011)),
-
-   Neighbor_State(bitset<6>(0b001010), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b001011), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101011), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b011010), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b011011), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b111010), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b111011), bitset<6>(0b000000)),
-   Neighbor_State(bitset<6>(0b001010), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b011010), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b011010), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b111010), bitset<6>(0b000001)), Neighbor_State(bitset<6>(0b111010), bitset<6>(0b000001)),
-   Neighbor_State(bitset<6>(0b001010), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b001011), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b001011), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b011010), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b011011), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b011010), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b011011), bitset<6>(0b100000)),
-   Neighbor_State(bitset<6>(0b001010), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b011010), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b011010), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b011010), bitset<6>(0b100001)), Neighbor_State(bitset<6>(0b011010), bitset<6>(0b100001)),
-   Neighbor_State(bitset<6>(0b001010), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b001011), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b101011), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b001011), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b101011), bitset<6>(0b010000)),
-   Neighbor_State(bitset<6>(0b001010), bitset<6>(0b010001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b010001)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010001)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b010001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b010001)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010001)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010001)),
-   Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001011), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001011), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001011), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001011), bitset<6>(0b110000)),
-   Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001)), Neighbor_State(bitset<6>(0b001010), bitset<6>(0b110001)),
-
-   Neighbor_State(bitset<6>(0b000101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b100101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b110101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b001101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b011101), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b111101), bitset<6>(0b000000)),
-   Neighbor_State(bitset<6>(0b000101), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b001101), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b001101), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b011101), bitset<6>(0b100000)), Neighbor_State(bitset<6>(0b011101), bitset<6>(0b100000)),
-   Neighbor_State(bitset<6>(0b000101), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b100101), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b100101), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b001101), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b101101), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b001101), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b101101), bitset<6>(0b010000)),
-   Neighbor_State(bitset<6>(0b000101), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001101), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001101), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001101), bitset<6>(0b110000)), Neighbor_State(bitset<6>(0b001101), bitset<6>(0b110000)),
-   Neighbor_State(bitset<6>(0b000101), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b100101), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110101), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b100101), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110101), bitset<6>(0b001000)),
-   Neighbor_State(bitset<6>(0b000101), bitset<6>(0b101000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b101000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b101000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b101000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b101000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b101000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b101000)), Neighbor_State(bitset<6>(0b010101), bitset<6>(0b101000)),
-   Neighbor_State(bitset<6>(0b000101), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100101), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100101), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100101), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100101), bitset<6>(0b011000)),
-   Neighbor_State(bitset<6>(0b000101), bitset<6>(0b111000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b111000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b111000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b111000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b111000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b111000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b111000)), Neighbor_State(bitset<6>(0b000101), bitset<6>(0b111000)),
-
-   Neighbor_State(bitset<6>(0b100010), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b110010), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b111010), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b100110), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b110110), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b101110), bitset<6>(0b000000)), Neighbor_State(bitset<6>(0b111110), bitset<6>(0b000000)),
-   Neighbor_State(bitset<6>(0b100010), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b100110), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b100110), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b101110), bitset<6>(0b010000)), Neighbor_State(bitset<6>(0b101110), bitset<6>(0b010000)),
-   Neighbor_State(bitset<6>(0b100010), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110010), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110010), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b100110), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110110), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b100110), bitset<6>(0b001000)), Neighbor_State(bitset<6>(0b110110), bitset<6>(0b001000)),
-   Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100110), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100110), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100110), bitset<6>(0b011000)), Neighbor_State(bitset<6>(0b100110), bitset<6>(0b011000)),
-   Neighbor_State(bitset<6>(0b100010), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b110010), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b111010), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b110010), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b000100)), Neighbor_State(bitset<6>(0b111010), bitset<6>(0b000100)),
-   Neighbor_State(bitset<6>(0b100010), bitset<6>(0b010100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b010100)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010100)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b010100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b010100)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010100)), Neighbor_State(bitset<6>(0b101010), bitset<6>(0b010100)),
-   Neighbor_State(bitset<6>(0b100010), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b110010), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b110010), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b110010), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b001100)), Neighbor_State(bitset<6>(0b110010), bitset<6>(0b001100)),
-   Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011100)), Neighbor_State(bitset<6>(0b100010), bitset<6>(0b011100))
-});
-
+inline bool in_corners(int x, int size, int d) {
+  return  ((x % size < d && x < d*size) || (x % size >= size - d && x >= size*(size-d)));
+}
 
 inline float sigmoidP(float x) {
     return x/(1 +abs(x));
@@ -719,7 +668,9 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, float al
 	vector<Eval_Move> candidate_moves(p.num_empty);
   p.get_moves(candidate_moves);
 	for (short int i = 0; i < p.num_empty; ++i) { //possibly better for loop
-    if (in_pruned_states(candidate_moves[i].pos, p)) {
+    short int cl = p.num_empty/(p.size*2);
+    //cout << "Testing" << cl << endl;
+    if (in_pruned_states(candidate_moves[i].pos, p) || (cl && in_corners(candidate_moves[i].pos, p.size, cl) ) ) {
       candidate_moves[i].evaluation = (2*p.is_red - 1)*MIN;
       //cout << "PRUNED" << endl;
     } else {
@@ -728,54 +679,6 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, float al
       //Eval_Move e = evaluate_shortestpath(p, evaluated_positions);
       //cout << e.pos << " " << e.evaluation << endl;
       candidate_moves[i].evaluation = evaluate_shortestpath(p, evaluated_positions);
-      if (!(in_first_row(candidate_moves[i].pos, p) || in_first_col(candidate_moves[i].pos, p) || in_last_row(candidate_moves[i].pos, p) || in_first_col(candidate_moves[i].pos, p))) { //improve!!!!
-
-        bitset<6> empty_tiles(0b111111);
-        empty_tiles &= ~(getNeighbors(p.is_red, candidate_moves[i].pos, p));
-        empty_tiles &= ~(getNeighbors(!p.is_red, candidate_moves[i].pos, p));
-
-        if(empty_tiles[0]) {
-          Neighbor_State ns(getNeighbors(p.is_red, candidate_moves[i].pos - 1, p), getNeighbors(!p.is_red, candidate_moves[i].pos - 1, p));
-          if (good_states.find(ns) != good_states.end()) {
-            candidate_moves[i].evaluation += (2*p.is_red - 1)*0.05;
-          }
-        }
-        else if(empty_tiles[1]) {
-          Neighbor_State ns(getNeighbors(p.is_red, candidate_moves[i].pos + p.size - 1, p), getNeighbors(!p.is_red, candidate_moves[i].pos + p.size - 1, p));
-          if (good_states.find(ns) != good_states.end()) {
-            candidate_moves[i].evaluation += (2*p.is_red - 1)*0.05;
-          }
-        }
-
-        else if(empty_tiles[2]) {
-          Neighbor_State ns(getNeighbors(p.is_red, candidate_moves[i].pos + p.size, p), getNeighbors(!p.is_red, candidate_moves[i].pos + p.size, p));
-          if (good_states.find(ns) != good_states.end()) {
-            candidate_moves[i].evaluation += (2*p.is_red - 1)*0.05;
-          }
-        }
-
-        else if(empty_tiles[3]) {
-          Neighbor_State ns(getNeighbors(p.is_red, candidate_moves[i].pos + 1, p), getNeighbors(!p.is_red, candidate_moves[i].pos + 1, p));
-          if (good_states.find(ns) != good_states.end()) {
-            candidate_moves[i].evaluation += (2*p.is_red - 1)*0.05;
-          }
-        }
-
-        else if(empty_tiles[4]) {
-          Neighbor_State ns(getNeighbors(p.is_red, candidate_moves[i].pos - p.size + 1, p), getNeighbors(!p.is_red, candidate_moves[i].pos - p.size + 1, p));
-          if (good_states.find(ns) != good_states.end()) {
-            candidate_moves[i].evaluation += (2*p.is_red - 1)*0.05;
-          }
-        }
-
-        else if(empty_tiles[5]) {
-          Neighbor_State ns(getNeighbors(p.is_red, candidate_moves[i].pos - p.size, p), getNeighbors(!p.is_red, candidate_moves[i].pos - p.size, p));
-          if (good_states.find(ns) != good_states.end()) {
-            candidate_moves[i].evaluation += (2*p.is_red - 1)*0.05;
-          }
-        }
-      }
-
       //cout << "pre undid" << endl;
       p.undo_move(candidate_moves[i].pos, p.is_red);
       //cout << "pre calculated" << endl;
@@ -803,7 +706,9 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, float al
         time_remaining = false;
         break;
       }
-      if (in_pruned_states(candidate_moves[i].pos, p)) {
+      short int cl = p.num_empty/(p.size*2);
+      //cout << "Testing" << cl << endl;
+      if (in_pruned_states(candidate_moves[i].pos, p) || (cl && in_corners(candidate_moves[i].pos, p.size, cl) ) ) {
         //cout << "PRUNED" << endl;
         continue;
       }
@@ -844,7 +749,10 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, float al
         time_remaining = false;
         break;
       }
-      if (in_pruned_states(candidate_moves[i].pos, p)) {
+      short int cl = p.num_empty/(p.size*2);
+      //cout << "Testing" << cl << endl;
+
+      if (in_pruned_states(candidate_moves[i].pos, p) || (cl && in_corners(candidate_moves[i].pos, p.size, cl) ) ) {
         //cout << "PRUNED" << endl;
         continue;
       }
@@ -876,27 +784,32 @@ Eval_Move minimax(short int depth, short int target_depth, Position& p, float al
 //Test main
 int main2(int argc, char *argv[]) {
 
-  Position p(3, true);
-  unordered_map< Position, pair<short int, float> , PositionHasher > evaluated_positions;
-  float f = evaluate_shortestpath(p, evaluated_positions);
-  cout << f << endl;
-  cout << p << endl;
-
-  bool red = true;
-  for (int i = 1; i < argc; ++i) {
-        if (strcmp(argv[i],"S") == 0) {
-          red = false;
-          continue;
-        }
-        p.do_move(atoi(argv[i]), red);
+  Position p(atoi(argv[1]), true);
+  while(true) {
+    int x;
+    cin >> x;
+    cout << "Is it in corner: " << in_corners(x, p.size, atoi(argv[2])) << endl;
   }
-  //p.do_move(0, true);
-
-
-
-  f = evaluate_shortestpath(p, evaluated_positions);
-  cout << f << endl;
-  cout << p << endl;
+  // unordered_map< Position, pair<short int, float> , PositionHasher > evaluated_positions;
+  // float f = evaluate_shortestpath(p, evaluated_positions);
+  // cout << f << endl;
+  // cout << p << endl;
+  //
+  // bool red = true;
+  // for (int i = 1; i < argc; ++i) {
+  //       if (strcmp(argv[i],"S") == 0) {
+  //         red = false;
+  //         continue;
+  //       }
+  //       p.do_move(atoi(argv[i]), red);
+  // }
+  // //p.do_move(0, true);
+  //
+  //
+  //
+  // f = evaluate_shortestpath(p, evaluated_positions);
+  // cout << f << endl;
+  // cout << p << endl;
 
   // auto t1 = chrono::high_resolution_clock::now();
   // int i = 1;
