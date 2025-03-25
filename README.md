@@ -9,5 +9,6 @@ The version that was most successful is "FINAL VERSION"
 This project was practice for making AIs to play boardgames, while it worked effectively, there are many things I would have done differently in hindsight:
 
 - Better organization (instead of everything in one file)
-- Kept variables for different approaches in a file, so that they can be tested seperately. 
+- Kept variables for different approaches and pruning bitsetsin a file, so that they can be tested seperately and kept more organized.
+- Lots of code was duplicated. Would have created more functions to seperate behavior.
 
